@@ -7,44 +7,54 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #fff5f5; text-align: center; color: #b91d47; margin: 0; overflow-x: hidden; touch-action: none; }
-        .screen { display: none; padding: 20px; box-sizing: border-box; }
-        .active { display: block; }
-        .header { background: #ff4d6d; color: white; padding: 20px; border-radius: 0 0 30px 30px; margin-bottom: 20px; }
-        .menu-btn { background: #ff4d6d; color: white; border: none; padding: 15px; margin: 10px; border-radius: 15px; width: 85%; font-size: 18px; font-weight: bold; box-shadow: 0 4px 0 #d93654; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fff5f5; text-align: center; color: #b91d47; margin: 0; overflow: hidden; touch-action: none; }
+        .screen { display: none; height: 100vh; width: 100vw; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .active { display: flex; }
+        
+        /* Botones y Estilos */
+        .header { background: #ff4d6d; color: white; padding: 20px; border-radius: 0 0 30px 30px; width: 100%; position: absolute; top: 0; }
+        .menu-btn { background: #ff4d6d; color: white; border: none; padding: 15px; margin: 10px; border-radius: 15px; width: 85%; font-size: 18px; font-weight: bold; box-shadow: 0 4px 0 #d93654; cursor: pointer; }
+        .menu-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #d93654; }
+        
         /* Gato */
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 300px; margin: 20px auto; }
-        .cell { aspect-ratio: 1/1; background: white; border: 2px solid #ffc1cc; font-size: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(3, 80px); gap: 10px; margin: 20px 0; }
+        .cell { width: 80px; height: 80px; background: white; border: 2px solid #ffc1cc; font-size: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 10px; }
+        
         /* Hockey */
-        #hockeyCanvas { background: #1a1a1a; border: 3px solid #ff4d6d; border-radius: 15px; display: block; margin: 0 auto; touch-action: none; }
-        #score-hockey { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; }
+        #hockeyCanvas { background: #1a1a1a; border: 3px solid #ff4d6d; border-radius: 15px; touch-action: none; }
     </style>
 </head>
 <body>
 
-    <div id="menu" class="screen active">
-        <div class="header"><h1>🎮 Gael & Mar</h1></div>
-        <p>❤️ Llevamos juntos: <br><span id="timer" style="font-weight:bold;"></span></p>
+    <div id="login" class="screen active">
+        <h1>❤️ ¡Bienvenidos!</h1>
+        <p>¿Quién está entrando a la app?</p>
+        <button class="menu-btn" onclick="setUser('gael')">Soy Gael 🦁</button>
+        <button class="menu-btn" style="background:#007bff; box-shadow: 0 4px 0 #0056b3;" onclick="setUser('mar')">Soy Mar 🐨</button>
+    </div>
+
+    <div id="menu" class="screen">
+        <div class="header"><h1>Gael & Mar Hub</h1></div>
+        <div style="background:white; padding:15px; border-radius:15px; margin-bottom:20px; width:80%;">
+            <strong>Tiempo juntos:</strong><br>
+            <span id="timer" style="color:#ff4d6d; font-weight:bold;"></span>
+        </div>
         <button class="menu-btn" onclick="showScreen('gato')">Jugar al Gato ❌⭕</button>
         <button class="menu-btn" onclick="showScreen('hockey')">Air Hockey 🏒</button>
-        <p style="font-size:0.8rem; margin-top:20px;">Venta del corte: <span id="fecha"></span></p>
+        <p style="font-size:0.8rem;">Venta del corte: <span id="fecha"></span></p>
     </div>
 
     <div id="gato" class="screen">
-        <h2>❌ El Gato ⭕</h2>
-        <div id="status-gato">Turno: ❌</div>
-        <div class="grid" id="board">
-            <div class="cell" onclick="makeMove(0)"></div><div class="cell" onclick="makeMove(1)"></div><div class="cell" onclick="makeMove(2)"></div>
-            <div class="cell" onclick="makeMove(3)"></div><div class="cell" onclick="makeMove(4)"></div><div class="cell" onclick="makeMove(5)"></div>
-            <div class="cell" onclick="makeMove(6)"></div><div class="cell" onclick="makeMove(7)"></div><div class="cell" onclick="makeMove(8)"></div>
+        <h2 id="status-gato">Turno: ❌</h2>
+        <div class="grid">
+            <script>for(let i=0; i<9; i++) document.write(`<div class="cell" onclick="makeMove(${i})"></div>`);</script>
         </div>
         <button class="menu-btn" onclick="resetGato()">Reiniciar</button>
-        <button class="menu-btn" style="background:#888" onclick="showScreen('menu')">Volver</button>
+        <button class="menu-btn" style="background:#888; box-shadow: 0 4px 0 #666;" onclick="showScreen('menu')">Volver</button>
     </div>
 
     <div id="hockey" class="screen">
-        <h2>🏒 Air Hockey</h2>
-        <div id="score-hockey">Cargando partida...</div>
+        <div id="score-hockey" style="margin-bottom:10px; font-weight:bold;">Gael vs Mar</div>
         <canvas id="hockeyCanvas" width="300" height="450"></canvas>
         <button class="menu-btn" style="background:#888; margin-top:20px;" onclick="showScreen('menu')">Volver</button>
     </div>
@@ -63,22 +73,29 @@
         const dbGato = firebase.database().ref('juego_gato');
         const dbHockey = firebase.database().ref('juego_hockey');
 
-        // --- CONTADOR ---
-        const aniversario = new Date("2025-12-31T00:00:00").getTime();
-        setInterval(() => {
-            const diff = new Date().getTime() - aniversario;
-            const d = Math.floor(diff/(86400000)), h = Math.floor((diff%86400000)/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-            document.getElementById("timer").innerText = `${d}d ${h}h ${m}m ${s}s`;
-            document.getElementById("fecha").innerText = new Date().toLocaleDateString();
-        }, 1000);
+        let currentUser = "";
+
+        function setUser(name) {
+            currentUser = name;
+            showScreen('menu');
+        }
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            if(id === 'hockey') startHockey();
+            if(id === 'hockey') initHockey();
         }
 
-        // --- LÓGICA GATO ---
+        // Contador Aniversario (31 Dic 2025)
+        const aniversario = new Date("2025-12-31T00:00:00").getTime();
+        setInterval(() => {
+            const diff = new Date().getTime() - aniversario;
+            const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+            document.getElementById("timer").innerText = `${d}d ${h}h ${m}m ${s}s`;
+            document.getElementById("fecha").innerText = new Date().toLocaleDateString();
+        }, 1000);
+
+        // Lógica Gato
         function makeMove(i) {
             dbGato.once('value', s => {
                 let d = s.val() || {board:Array(9).fill(""), turn:"❌"};
@@ -92,36 +109,28 @@
             document.getElementById('status-gato').innerText = "Turno: " + d.turn;
         });
 
-        // --- LÓGICA HOCKEY CORREGIDA ---
+        // Lógica Hockey
         const canvas = document.getElementById('hockeyCanvas');
         const ctx = canvas.getContext('2d');
-        let role = window.location.hash === "#mar" ? "mar" : "gael"; // Puedes entrar como index.html#mar
-
-        function startHockey() {
-            canvas.addEventListener('touchmove', e => {
+        
+        function initHockey() {
+            canvas.ontouchmove = (e) => {
                 e.preventDefault();
                 const rect = canvas.getBoundingClientRect();
                 const x = e.touches[0].clientX - rect.left;
-                dbHockey.child(role).set({x: x});
-            }, {passive: false});
+                dbHockey.child(currentUser).set({x: x});
+            };
 
             dbHockey.on('value', s => {
                 const d = s.val() || {gael:{x:150}, mar:{x:150}, ball:{x:150, y:225}};
                 ctx.clearRect(0,0,300,450);
-                
-                // Línea media
                 ctx.strokeStyle = "rgba(255,255,255,0.2)";
-                ctx.beginPath(); ctx.moveTo(0,225); ctx.lineTo(300,225); ctx.stroke();
-
-                // Paletas (Gael abajo rojo, Mar arriba azul)
-                ctx.fillStyle = "#ff4d6d"; ctx.fillRect(d.gael.x - 25, 410, 50, 15);
-                ctx.fillStyle = "#007bff"; ctx.fillRect(d.mar.x - 25, 25, 50, 15);
-
-                // Disco
-                ctx.fillStyle = "white";
-                ctx.beginPath(); ctx.arc(d.ball.x, d.ball.y, 10, 0, Math.PI*2); ctx.fill();
-                
-                document.getElementById('score-hockey').innerText = "Jugando como: " + role.toUpperCase();
+                ctx.strokeRect(0,225,300,1);
+                // Dibujar Gael (Rojo - Abajo) y Mar (Azul - Arriba)
+                ctx.fillStyle = "#ff4d6d"; ctx.fillRect(d.gael.x-25, 420, 50, 15);
+                ctx.fillStyle = "#007bff"; ctx.fillRect(d.mar.x-25, 15, 50, 15);
+                // Pelota
+                ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(d.ball.x, d.ball.y, 10, 0, Math.PI*2); ctx.fill();
             });
         }
     </script>
