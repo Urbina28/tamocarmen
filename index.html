@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gael & Mar ❤️</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #fdf0f0; text-align: center; color: #b91d47; margin: 0; }
+        .screen { display: none; padding: 20px; animation: fadeIn 0.5s; }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .menu-btn { background: #ff4d6d; color: white; border: none; padding: 15px; margin: 10px; border-radius: 15px; width: 85%; font-size: 18px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 300px; margin: 20px auto; }
+        .cell { aspect-ratio: 1/1; background: white; border: 2px solid #ff4d6d; font-size: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 12px; cursor: pointer; }
+        .info { background: white; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <div id="menu" class="screen active">
+        <h1>🎮 Gael & Mar Hub</h1>
+        <div class="info">
+            <strong>Ventas Generales (Victorias)</strong><br>
+            Gael: <span id="v-gael">0</span> | Mar: <span id="v-mar">0</span>
+        </div>
+        <button class="menu-btn" onclick="showScreen('gato')">Jugar al Gato ❌⭕</button>
+        <p>Próximamente: Hockey 🏒 y Memorama 📸</p>
+    </div>
+
+    <div id="gato" class="screen">
+        <h2 id="status">Esperando turno...</h2>
+        <div class="grid" id="board">
+            <div class="cell" onclick="makeMove(0)"></div>
+            <div class="cell" onclick="makeMove(1)"></div>
+            <div class="cell" onclick="makeMove(2)"></div>
+            <div class="cell" onclick="makeMove(3)"></div>
+            <div class="cell" onclick="makeMove(4)"></div>
+            <div class="cell" onclick="makeMove(5)"></div>
+            <div class="cell" onclick="makeMove(6)"></div>
+            <div class="cell" onclick="makeMove(7)"></div>
+            <div class="cell" onclick="makeMove(8)"></div>
+        </div>
+        <button class="menu-btn" onclick="resetGame()">Reiniciar Juego</button>
+        <button class="menu-btn" style="background:#666" onclick="showScreen('menu')">Volver</button>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN DE TU FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHYSY7wUcZ0zPGDXSRgpwDLcN6iTDjg6I",
+            authDomain: "minijuego-eabcb.firebaseapp.com",
+            projectId: "minijuego-eabcb",
+            databaseURL: "https://minijuego-eabcb-default-rtdb.firebaseio.com/", // Ajusta según tu URL de DB
+            storageBucket: "minijuego-eabcb.firebasestorage.app",
+            messagingSenderId: "90763304589",
+            appId: "1:90763304589:web:91e927504cb88fca6e8cc4"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database().ref('juego_gato');
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // Lógica Multijugador
+        function makeMove(i) {
+            db.once('value', (snap) => {
+                let data = snap.val() || { board: Array(9).fill(""), turn: "❌" };
+                if (data.board[i] === "") {
+                    data.board[i] = data.turn;
+                    data.turn = data.turn === "❌" ? "⭕" : "❌";
+                    db.set(data);
+                }
+            });
+        }
+
+        function resetGame() {
+            db.set({ board: Array(9).fill(""), turn: "❌" });
+        }
+
+        // Escuchar cambios de Firebase
+        db.on('value', (snap) => {
+            const data = snap.val();
+            if (!data) return;
+            const cells = document.querySelectorAll('.cell');
+            data.board.forEach((val, i) => {
+                cells[i].innerText = val;
+                cells[i].style.color = val === "❌" ? "#ff4d6d" : "#007bff";
+            });
+            document.getElementById('status').innerText = "Turno de: " + data.turn;
+        });
+    </script>
+</body>
+</html>
