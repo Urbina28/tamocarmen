@@ -10,17 +10,10 @@
         body { font-family: 'Segoe UI', sans-serif; background: #fff5f5; text-align: center; color: #b91d47; margin: 0; overflow: hidden; touch-action: none; }
         .screen { display: none; height: 100vh; width: 100vw; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
         .active { display: flex; }
-        
-        /* Botones y Estilos */
         .header { background: #ff4d6d; color: white; padding: 20px; border-radius: 0 0 30px 30px; width: 100%; position: absolute; top: 0; }
         .menu-btn { background: #ff4d6d; color: white; border: none; padding: 15px; margin: 10px; border-radius: 15px; width: 85%; font-size: 18px; font-weight: bold; box-shadow: 0 4px 0 #d93654; cursor: pointer; }
-        .menu-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #d93654; }
-        
-        /* Gato */
         .grid { display: grid; grid-template-columns: repeat(3, 80px); gap: 10px; margin: 20px 0; }
         .cell { width: 80px; height: 80px; background: white; border: 2px solid #ffc1cc; font-size: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 10px; }
-        
-        /* Hockey */
         #hockeyCanvas { background: #1a1a1a; border: 3px solid #ff4d6d; border-radius: 15px; touch-action: none; }
     </style>
 </head>
@@ -28,9 +21,9 @@
 
     <div id="login" class="screen active">
         <h1>❤️ ¡Bienvenidos!</h1>
-        <p>¿Quién está entrando a la app?</p>
-        <button class="menu-btn" onclick="setUser('gael')">Soy Gael 🦁</button>
-        <button class="menu-btn" style="background:#007bff; box-shadow: 0 4px 0 #0056b3;" onclick="setUser('mar')">Soy Mar 🐨</button>
+        <p>¿Quién eres hoy?</p>
+        <button class="menu-btn" style="background:#007bff; box-shadow: 0 4px 0 #0056b3;" onclick="setUser('gael')">Soy Gael 🦁</button>
+        <button class="menu-btn" style="background:#ff69b4; box-shadow: 0 4px 0 #c71585;" onclick="setUser('mar')">Soy Mar 🐨</button>
     </div>
 
     <div id="menu" class="screen">
@@ -54,7 +47,7 @@
     </div>
 
     <div id="hockey" class="screen">
-        <div id="score-hockey" style="margin-bottom:10px; font-weight:bold;">Gael vs Mar</div>
+        <div id="score-hockey" style="margin-bottom:10px; font-weight:bold;">Hockey en vivo</div>
         <canvas id="hockeyCanvas" width="300" height="450"></canvas>
         <button class="menu-btn" style="background:#888; margin-top:20px;" onclick="showScreen('menu')">Volver</button>
     </div>
@@ -74,6 +67,8 @@
         const dbHockey = firebase.database().ref('juego_hockey');
 
         let currentUser = "";
+        const colorGael = "#007bff"; // Azul
+        const colorMar = "#ff69b4";  // Rosa
 
         function setUser(name) {
             currentUser = name;
@@ -86,7 +81,6 @@
             if(id === 'hockey') initHockey();
         }
 
-        // Contador Aniversario (31 Dic 2025)
         const aniversario = new Date("2025-12-31T00:00:00").getTime();
         setInterval(() => {
             const diff = new Date().getTime() - aniversario;
@@ -95,11 +89,13 @@
             document.getElementById("fecha").innerText = new Date().toLocaleDateString();
         }, 1000);
 
-        // Lógica Gato
         function makeMove(i) {
             dbGato.once('value', s => {
                 let d = s.val() || {board:Array(9).fill(""), turn:"❌"};
-                if(d.board[i]==="" && !d.w) { d.board[i]=d.turn; d.turn=d.turn==="❌"?"⭕":"❌"; dbGato.set(d); }
+                if(d.board[i]==="" && !d.w) {
+                    d.board[i]=d.turn; d.turn=d.turn==="❌"?"⭕":"❌";
+                    dbGato.set(d);
+                }
             });
         }
         function resetGato() { dbGato.set({board:Array(9).fill(""), turn:"❌"}); }
@@ -109,7 +105,6 @@
             document.getElementById('status-gato').innerText = "Turno: " + d.turn;
         });
 
-        // Lógica Hockey
         const canvas = document.getElementById('hockeyCanvas');
         const ctx = canvas.getContext('2d');
         
@@ -118,18 +113,28 @@
                 e.preventDefault();
                 const rect = canvas.getBoundingClientRect();
                 const x = e.touches[0].clientX - rect.left;
+                // Cada uno guarda su posición en Firebase
                 dbHockey.child(currentUser).set({x: x});
             };
 
             dbHockey.on('value', s => {
                 const d = s.val() || {gael:{x:150}, mar:{x:150}, ball:{x:150, y:225}};
                 ctx.clearRect(0,0,300,450);
-                ctx.strokeStyle = "rgba(255,255,255,0.2)";
-                ctx.strokeRect(0,225,300,1);
-                // Dibujar Gael (Rojo - Abajo) y Mar (Azul - Arriba)
-                ctx.fillStyle = "#ff4d6d"; ctx.fillRect(d.gael.x-25, 420, 50, 15);
-                ctx.fillStyle = "#007bff"; ctx.fillRect(d.mar.x-25, 15, 50, 15);
-                // Pelota
+                ctx.strokeStyle = "rgba(255,255,255,0.3)";
+                ctx.strokeRect(0,225,300,1); // Línea media
+
+                // Dibujar con perspectiva según quién seas
+                if(currentUser === 'gael') {
+                    // Gael abajo (Azul), Mar arriba (Rosa)
+                    ctx.fillStyle = colorGael; ctx.fillRect(d.gael.x-25, 420, 50, 15);
+                    ctx.fillStyle = colorMar; ctx.fillRect(d.mar.x-25, 15, 50, 15);
+                } else {
+                    // Mar abajo (Rosa), Gael arriba (Azul)
+                    // Invertimos la x del oponente para que el movimiento sea natural
+                    ctx.fillStyle = colorMar; ctx.fillRect(d.mar.x-25, 420, 50, 15);
+                    ctx.fillStyle = colorGael; ctx.fillRect(d.gael.x-25, 15, 50, 15);
+                }
+                
                 ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(d.ball.x, d.ball.y, 10, 0, Math.PI*2); ctx.fill();
             });
         }
