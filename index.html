@@ -2,97 +2,131 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gael & Mar ❤️</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gael & Mar ❤️ Hub</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #fdf0f0; text-align: center; color: #b91d47; margin: 0; }
-        .screen { display: none; padding: 20px; animation: fadeIn 0.5s; }
-        .active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .menu-btn { background: #ff4d6d; color: white; border: none; padding: 15px; margin: 10px; border-radius: 15px; width: 85%; font-size: 18px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 300px; margin: 20px auto; }
-        .cell { aspect-ratio: 1/1; background: white; border: 2px solid #ff4d6d; font-size: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 12px; cursor: pointer; }
-        .info { background: white; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fff5f5; text-align: center; color: #b91d47; margin: 0; overflow: hidden; touch-action: manipulation; }
+        .screen { display: none; height: 100vh; width: 100vw; box-sizing: border-box; padding: 20px; }
+        .active { display: flex; flex-direction: column; align-items: center; }
+        
+        /* Menú */
+        .header { background: #ff4d6d; color: white; padding: 20px; border-radius: 0 0 30px 30px; width: 100%; margin-top: -20px; }
+        .timer-box { background: white; padding: 15px; border-radius: 20px; margin: 15px 0; width: 85%; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .menu-btn { background: #ff4d6d; color: white; border: none; padding: 15px; margin: 10px; border-radius: 15px; width: 85%; font-size: 18px; font-weight: bold; }
+
+        /* Gato */
+        .grid { display: grid; grid-template-columns: repeat(3, 80px); gap: 10px; margin: 20px auto; }
+        .cell { width: 80px; height: 80px; background: white; border: 2px solid #ffc1cc; font-size: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 10px; }
+
+        /* Hockey Canvas */
+        #hockeyCanvas { background: #222; border: 4px solid #ff4d6d; border-radius: 10px; touch-action: none; max-width: 90vw; max-height: 60vh; }
     </style>
 </head>
 <body>
 
     <div id="menu" class="screen active">
-        <h1>🎮 Gael & Mar Hub</h1>
-        <div class="info">
-            <strong>Ventas Generales (Victorias)</strong><br>
-            Gael: <span id="v-gael">0</span> | Mar: <span id="v-mar">0</span>
-        </div>
+        <div class="header"><h1>Gael & Mar</h1></div>
+        <div class="timer-box">❤️ Llevamos juntos:<br><span id="timer" style="font-weight:bold; color:#ff4d6d;"></span></div>
         <button class="menu-btn" onclick="showScreen('gato')">Jugar al Gato ❌⭕</button>
-        <p>Próximamente: Hockey 🏒 y Memorama 📸</p>
+        <button class="menu-btn" onclick="showScreen('hockey')">Air Hockey 🏒</button>
+        <div style="margin-top:20px; font-size:0.8rem;">Venta del corte: <span id="fecha"></span></div>
     </div>
 
     <div id="gato" class="screen">
-        <h2 id="status">Esperando turno...</h2>
+        <h2>❌ El Gato ⭕</h2>
+        <div id="status-gato">Turno de: ❌</div>
         <div class="grid" id="board">
-            <div class="cell" onclick="makeMove(0)"></div>
-            <div class="cell" onclick="makeMove(1)"></div>
-            <div class="cell" onclick="makeMove(2)"></div>
-            <div class="cell" onclick="makeMove(3)"></div>
-            <div class="cell" onclick="makeMove(4)"></div>
-            <div class="cell" onclick="makeMove(5)"></div>
-            <div class="cell" onclick="makeMove(6)"></div>
-            <div class="cell" onclick="makeMove(7)"></div>
-            <div class="cell" onclick="makeMove(8)"></div>
+            <script>for(let i=0; i<9; i++) document.write(`<div class="cell" onclick="makeMove(${i})"></div>`);</script>
         </div>
-        <button class="menu-btn" onclick="resetGame()">Reiniciar Juego</button>
-        <button class="menu-btn" style="background:#666" onclick="showScreen('menu')">Volver</button>
+        <button class="menu-btn" onclick="resetGato()">Reiniciar</button>
+        <button class="menu-btn" style="background:#888" onclick="showScreen('menu')">Volver</button>
+    </div>
+
+    <div id="hockey" class="screen">
+        <h2>🏒 Air Hockey</h2>
+        <div id="score">Gael: 0 | Mar: 0</div>
+        <canvas id="hockeyCanvas" width="300" height="400"></canvas>
+        <p style="font-size:0.7rem;">Mueve tu paleta en la parte inferior</p>
+        <button class="menu-btn" style="background:#888" onclick="showScreen('menu')">Volver</button>
     </div>
 
     <script>
-        // CONFIGURACIÓN DE TU FIREBASE
+        // FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyAHYSY7wUcZ0zPGDXSRgpwDLcN6iTDjg6I",
             authDomain: "minijuego-eabcb.firebaseapp.com",
             projectId: "minijuego-eabcb",
-            databaseURL: "https://minijuego-eabcb-default-rtdb.firebaseio.com/", // Ajusta según tu URL de DB
+            databaseURL: "https://minijuego-eabcb-default-rtdb.firebaseio.com/",
             storageBucket: "minijuego-eabcb.firebasestorage.app",
             messagingSenderId: "90763304589",
             appId: "1:90763304589:web:91e927504cb88fca6e8cc4"
         };
-
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database().ref('juego_gato');
+        const dbGato = firebase.database().ref('juego_gato');
+        const dbHockey = firebase.database().ref('juego_hockey');
+
+        // CONTADOR ANIVERSARIO
+        const aniversario = new Date("2025-12-31T00:00:00").getTime();
+        setInterval(() => {
+            const diff = new Date().getTime() - aniversario;
+            const d = Math.floor(diff/(1000*60*60*24)), h = Math.floor((diff%(1000*60*60*24))/(1000*60*60)), m = Math.floor((diff%(1000*60*60))/(1000*60)), s = Math.floor((diff%(1000*60))/1000);
+            document.getElementById("timer").innerHTML = `${d}d ${h}h ${m}m ${s}s`;
+            document.getElementById("fecha").innerText = new Date().toLocaleDateString();
+        }, 1000);
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            if(id === 'hockey') initHockey();
         }
 
-        // Lógica Multijugador
+        // LÓGICA GATO (Igual que antes pero compacta)
         function makeMove(i) {
-            db.once('value', (snap) => {
-                let data = snap.val() || { board: Array(9).fill(""), turn: "❌" };
-                if (data.board[i] === "") {
-                    data.board[i] = data.turn;
-                    data.turn = data.turn === "❌" ? "⭕" : "❌";
-                    db.set(data);
+            dbGato.once('value', s => {
+                let d = s.val() || {board:Array(9).fill(""), turn:"❌"};
+                if(d.board[i]==="" && !d.w) {
+                    d.board[i]=d.turn; d.turn = d.turn==="❌"?"⭕":"❌";
+                    dbGato.set(d);
                 }
             });
         }
-
-        function resetGame() {
-            db.set({ board: Array(9).fill(""), turn: "❌" });
-        }
-
-        // Escuchar cambios de Firebase
-        db.on('value', (snap) => {
-            const data = snap.val();
-            if (!data) return;
+        function resetGato() { dbGato.set({board:Array(9).fill(""), turn:"❌"}); }
+        dbGato.on('value', s => {
+            const d = s.val(); if(!d) return;
             const cells = document.querySelectorAll('.cell');
-            data.board.forEach((val, i) => {
-                cells[i].innerText = val;
-                cells[i].style.color = val === "❌" ? "#ff4d6d" : "#007bff";
-            });
-            document.getElementById('status').innerText = "Turno de: " + data.turn;
+            d.board.forEach((v, i) => cells[i].innerText = v);
+            document.getElementById('status-gato').innerText = "Turno: " + d.turn;
         });
+
+        // LÓGICA HOCKEY SIMPLIFICADA
+        const canvas = document.getElementById('hockeyCanvas');
+        const ctx = canvas.getContext('2d');
+        let myY = 350;
+
+        canvas.addEventListener('touchmove', e => {
+            const rect = canvas.getBoundingClientRect();
+            let touchY = e.touches[0].clientY - rect.top;
+            if(touchY > 200) { // Solo mover en su mitad
+                myY = touchY;
+                dbHockey.child(navigator.userAgent.includes('iPhone') ? 'mar' : 'gael').set({y: myY});
+            }
+        });
+
+        function initHockey() {
+            dbHockey.on('value', s => {
+                const data = s.val() || {gael:{y:350}, mar:{y:50}, ball:{x:150, y:200}};
+                ctx.clearRect(0,0,300,400);
+                // Dibujar campo
+                ctx.strokeStyle = "white"; ctx.strokeRect(0,200,300,1);
+                // Paletas
+                ctx.fillStyle = "#ff4d6d"; ctx.fillRect(125, data.gael.y, 50, 10);
+                ctx.fillStyle = "#007bff"; ctx.fillRect(125, data.mar.y, 50, 10);
+                // Disco
+                ctx.beginPath(); ctx.arc(data.ball.x, data.ball.y, 10, 0, Math.PI*2); ctx.fill();
+            });
+        }
     </script>
 </body>
 </html>
