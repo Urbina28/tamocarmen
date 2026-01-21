@@ -8,65 +8,68 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
         :root { --gael: #007bff; --mar: #ff4d6d; --bg: #fff5f5; }
-        body { font-family: 'Segoe UI', sans-serif; background: #000; margin: 0; overflow: hidden; touch-action: none; color: white; }
-        .screen { display: none; height: 100vh; width: 100vw; flex-direction: column; align-items: center; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; overflow-x: hidden; color: #b91d47; display: flex; flex-direction: column; align-items: center; }
+        
+        .screen { display: none; height: 100vh; width: 100vw; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; padding: 20px; }
         .active { display: flex; }
         
-        /* UI Estilo Apple/Limpio */
-        .main-ui { background: var(--bg); color: #b91d47; justify-content: center; }
         .header { background: var(--mar); color: white; padding: 15px; border-radius: 0 0 25px 25px; width: 100%; position: absolute; top: 0; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .menu-btn { background: var(--mar); color: white; border: none; padding: 15px; margin: 8px; border-radius: 15px; width: 85%; font-size: 1.1rem; font-weight: bold; box-shadow: 0 4px 0 #d93654; active: transform: translateY(2px); }
-
-        /* Gato Diseño */
-        .gato-grid { display: grid; grid-template-columns: repeat(3, 95px); gap: 10px; margin: 20px 0; }
-        .cell { width: 95px; height: 95px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.05); color: #333; }
-
-        /* Hockey Diseño */
-        #hockeyCanvas { background: white; }
-        .side-score { position: absolute; left: 0; top: 50%; transform: translateY(-50%); z-index: 10; }
-        .s-box { width: 35px; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid white; font-size: 1.2rem; }
         
-        #win-modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 25px; width: 80%; color: #333; z-index: 100; text-align: center; border: 4px solid var(--mar); }
+        .btn { background: var(--mar); color: white; border: none; padding: 15px; margin: 8px; border-radius: 20px; font-size: 1.1rem; font-weight: bold; box-shadow: 0 5px 0 #d93654; cursor: pointer; width: 85%; max-width: 300px; }
+        .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #d93654; }
+
+        /* Estilo Gato */
+        .gato-grid { display: grid; grid-template-columns: repeat(3, 90px); gap: 12px; margin: 20px 0; }
+        .cell { width: 90px; height: 90px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+
+        /* Estilo Memorama */
+        .memory-grid { display: grid; grid-template-columns: repeat(4, 70px); gap: 10px; perspective: 1000px; }
+        .card { width: 70px; height: 70px; position: relative; transform-style: preserve-3d; transition: transform 0.6s; cursor: pointer; }
+        .card.flipped { transform: rotateY(180deg); }
+        .card.matched { visibility: hidden; opacity: 0; }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background: white; }
+        .card-back { transform: rotateY(180deg); }
+
+        .timer-box { background: white; padding: 15px; border-radius: 20px; margin-top: 60px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; width: 80%; }
     </style>
 </head>
 <body>
 
-    <div id="login" class="screen active main-ui">
-        <h1>🦁 Gael & Mar 🐨</h1>
-        <button class="menu-btn" style="background:var(--gael); box-shadow: 0 4px 0 #0056b3;" onclick="setUser('gael')">Soy Gael</button>
-        <button class="menu-btn" style="background:var(--mar);" onclick="setUser('mar')">Soy Mar</button>
+    <div id="login" class="screen active">
+        <h1 style="font-size: 2.5rem;">🦁 Gael & Mar 🐨</h1>
+        <button class="btn" style="background: var(--gael); box-shadow: 0 5px 0 #0056b3;" onclick="setUser('gael')">Soy Gael</button>
+        <button class="btn" onclick="setUser('mar')">Soy Mar</button>
     </div>
 
-    <div id="menu" class="screen main-ui">
-        <div class="header"><h3>❤️ Gael & Mar Hub</h3></div>
-        <div style="background:white; padding:20px; border-radius:20px; width:80%; margin-top:60px; box-shadow:0 5px 15px rgba(0,0,0,0.05);">
-            <small>Tiempo Juntos:</small><br><span id="timer" style="color:var(--mar); font-size:1.2rem; font-weight:bold;"></span>
+    <div id="menu" class="screen">
+        <div class="header"><h3>❤️ Nuestro Hub ❤️</h3></div>
+        <div class="timer-box">
+            <small>Llevamos juntos:</small><br>
+            <span id="timer" style="font-weight: bold; font-size: 1.2rem;"></span>
         </div>
-        <button class="menu-btn" onclick="showScreen('gato')">Jugar al Gato ❌⭕</button>
-        <button class="menu-btn" onclick="showScreen('hockey')">Air Hockey 🏒</button>
+        <button class="btn" onclick="showScreen('gato')">Jugar al Gato ❌⭕</button>
+        <button class="btn" onclick="showScreen('memo')">Memorama ❤️</button>
+        <button class="btn" style="background:#888; box-shadow: 0 5px 0 #666;" onclick="showScreen('login')">Salir</button>
     </div>
 
-    <div id="gato" class="screen main-ui">
+    <div id="gato" class="screen">
         <h2 id="status-gato">Turno: ❌</h2>
-        <div class="gato-grid"><script>for(let i=0; i<9; i++) document.write(`<div class="cell" onclick="makeMove(${i})"></div>`);</script></div>
-        <button class="menu-btn" onclick="resetGato()">Reiniciar Tablero</button>
-        <button class="menu-btn" style="background:#888; box-shadow:0 4px 0 #666;" onclick="showScreen('menu')">Volver al Menú</button>
+        <div class="gato-grid" id="board-gato">
+            <script>for(let i=0; i<9; i++) document.write(`<div class="cell" onclick="playGato(${i})"></div>`);</script>
+        </div>
+        <button class="btn" onclick="resetGato()">Reiniciar</button>
+        <button class="btn" style="background:#888; box-shadow:0 5px 0 #666;" onclick="showScreen('menu')">Volver</button>
     </div>
 
-    <div id="hockey" class="screen">
-        <div class="side-score">
-            <div id="s-mar" class="s-box" style="background:var(--mar); border-radius: 0 8px 0 0;">0</div>
-            <div id="s-gael" class="s-box" style="background:var(--gael); border-radius: 0 0 8px 0;">0</div>
-        </div>
-        <canvas id="hockeyCanvas"></canvas>
-        <div id="win-modal">
-            <h2 id="win-text">¡GANASTE! 🎉</h2>
-            <button class="menu-btn" onclick="resetMatch()">JUGAR DE NUEVO</button>
-            <button class="menu-btn" style="background:#888;" onclick="showScreen('menu')">SALIR</button>
-        </div>
+    <div id="memo" class="screen">
+        <h2 id="status-memo">Encuentra las parejas</h2>
+        <div class="memory-grid" id="grid-memo"></div>
+        <button class="btn" style="margin-top:20px;" onclick="resetMemo()">Reiniciar</button>
+        <button class="btn" style="background:#888; box-shadow:0 5px 0 #666;" onclick="showScreen('menu')">Volver</button>
     </div>
 
     <script>
+        // CONFIGURACIÓN FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyAHYSY7wUcZ0zPGDXSRgpwDLcN6iTDjg6I",
             authDomain: "minijuego-eabcb.firebaseapp.com",
@@ -77,122 +80,77 @@
             appId: "1:90763304589:web:91e927504cb88fca6e8cc4"
         };
         firebase.initializeApp(firebaseConfig);
-        const dbG = firebase.database().ref('juego_gato_v2');
-        const dbH = firebase.database().ref('juego_hockey_v2');
+        const dbGato = firebase.database().ref('juego_gato');
+        const dbMemo = firebase.database().ref('juego_memo');
 
-        let currentUser = "";
-        const W = window.innerWidth, H = window.innerHeight;
-        const canvas = document.getElementById('hockeyCanvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = W; canvas.height = H;
+        let user = "";
+        const emojis = ["❤️", "🐱", "🐨", "🦁", "🧸", "🌹", "💎", "🍭"];
 
-        let ball = { x:W/2, y:H/2, vx:0, vy:0 };
-        let pads = { gael:{x:W/2, y:H-100}, mar:{x:W/2, y:100} };
-        let gameActive = true;
-
-        function setUser(u) { currentUser = u; showScreen('menu'); }
-        function showScreen(s) {
-            document.querySelectorAll('.screen').forEach(e => e.classList.remove('active'));
-            document.getElementById(s).classList.add('active');
-            if(s === 'hockey') initHockey();
+        function setUser(name) { user = name; showScreen('menu'); }
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id === 'memo') initMemo();
         }
 
-        // --- GATO ---
-        function makeMove(i) {
-            dbG.once('value', s => {
-                let d = s.val() || {b:Array(9).fill(""), t:"❌"};
-                if(d.b[i]==="" && !checkWinGato(d.b)) { 
-                    d.b[i]=d.t; d.t=d.t==="❌"?"⭕":"❌"; dbG.set(d); 
+        // --- LÓGICA GATO ---
+        function playGato(i) {
+            const sym = (user === 'gael') ? "❌" : "⭕";
+            dbGato.once('value', s => {
+                let d = s.val() || {b: Array(9).fill(""), t: "❌"};
+                if (d.b[i] === "" && d.t === sym) {
+                    d.b[i] = sym; d.t = (sym === "❌") ? "⭕" : "❌";
+                    dbGato.set(d);
                 }
             });
         }
-        function checkWinGato(b) {
-            const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-            return wins.some(w => b[w[0]]!=="" && b[w[0]]===b[w[1]] && b[w[0]]===b[w[2]]);
-        }
-        function resetGato() { dbG.set({b:Array(9).fill(""), t:"❌"}); }
-        dbG.on('value', s => {
+        function resetGato() { dbGato.set({b: Array(9).fill(""), t: "❌"}); }
+        dbGato.on('value', s => {
             const d = s.val(); if(!d) return;
-            document.querySelectorAll('.cell').forEach((c,i) => {
-                c.innerText = d.b[i];
-                c.style.color = d.b[i]==="❌"? "var(--gael)" : "var(--mar)";
+            const cells = document.querySelectorAll('#board-gato .cell');
+            d.b.forEach((v, i) => {
+                cells[i].innerText = v;
+                cells[i].style.color = (v === "❌") ? "var(--gael)" : "var(--mar)";
             });
             document.getElementById('status-gato').innerText = "Turno: " + d.t;
         });
 
-        // --- HOCKEY ---
-        function initHockey() {
-            canvas.ontouchmove = (e) => {
-                if(!gameActive) return;
-                const tx = Math.max(35, Math.min(W-35, e.touches[0].clientX));
-                const ty = e.touches[0].clientY;
-                if(currentUser==='gael' && ty > H/2) dbH.child('gael').set({x:tx, y:ty});
-                if(currentUser==='mar' && ty < H/2) dbH.child('mar').set({x:tx, y:ty});
-            };
-            if(currentUser==='gael') setInterval(physics, 16);
-            dbH.on('value', s => {
-                const d = s.val() || {};
-                pads = { gael: d.gael || pads.gael, mar: d.mar || pads.mar };
-                ball = d.ball || {x:W/2, y:H/2, vx:0, vy:0};
-                const sg = d.scoreG||0, sm = d.scoreM||0;
-                document.getElementById('s-gael').innerText = sg;
-                document.getElementById('s-mar').innerText = sm;
-                if(sg>=7 || sm>=7) {
-                    gameActive=false; document.getElementById('win-modal').style.display='block';
-                    document.getElementById('win-text').innerText = `¡HA GANADO ${sg>=7?'GAEL':'MAR'}! 🎉`;
-                } else { gameActive=true; document.getElementById('win-modal').style.display='none'; }
-                draw();
+        // --- LÓGICA MEMORAMA ---
+        function initMemo() {
+            dbMemo.on('value', s => {
+                const d = s.val(); if(!d) return;
+                const grid = document.getElementById('grid-memo');
+                grid.innerHTML = '';
+                d.deck.forEach((emoji, i) => {
+                    const card = document.createElement('div');
+                    card.className = 'card' + (d.f.includes(i) ? ' flipped' : '') + (d.m.includes(i) ? ' matched' : '');
+                    card.innerHTML = `<div class="card-face">?</div><div class="card-face card-back">${emoji}</div>`;
+                    card.onclick = () => flipMemo(i);
+                    grid.appendChild(card);
+                });
             });
         }
-
-        function resetMatch() { dbH.update({scoreG:0, scoreM:0, ball:{x:W/2, y:H/2, vx:0, vy:0}}); }
-
-        function physics() {
-            if(!gameActive) return;
-            ball.x += ball.vx; ball.y += ball.vy;
-            ball.vx *= 0.99; ball.vy *= 0.99;
-            if(ball.x < 25 || ball.x > W-25) ball.vx *= -1.05;
-
-            // GOL LOGIC
-            if(ball.y < 30 || ball.y > H-30) {
-                if(ball.x > W*0.25 && ball.x < W*0.75) {
-                    dbH.once('value', s => {
-                        let d = s.val() || {scoreG:0, scoreM:0};
-                        if(ball.y < 30) d.scoreG++; else d.scoreM++;
-                        dbH.update({scoreG:d.scoreG, scoreM:d.scoreM, ball:{x:W/2, y:H/2, vx:0, vy:0}});
-                    });
-                } else { ball.vy *= -1.05; }
-            }
-            [pads.gael, pads.mar].forEach(p => {
-                let dist = Math.hypot(ball.x - p.x, ball.y - p.y);
-                if(dist < 50) {
-                    let angle = Math.atan2(ball.y - p.y, ball.x - p.x);
-                    ball.vx = Math.cos(angle) * 11; ball.vy = Math.sin(angle) * 11;
+        function flipMemo(i) {
+            dbMemo.once('value', s => {
+                let d = s.val();
+                if (d.m.includes(i) || d.f.includes(i) || d.f.length >= 2) return;
+                d.f.push(i);
+                if (d.f.length === 2) {
+                    if (d.deck[d.f[0]] === d.deck[d.f[1]]) {
+                        d.m.push(d.f[0], d.f[1]); d.f = [];
+                    } else {
+                        setTimeout(() => { dbMemo.child('f').set([]); }, 1000);
+                    }
                 }
+                dbMemo.set(d);
             });
-            dbH.child('ball').set(ball);
+        }
+        function resetMemo() {
+            const deck = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
+            dbMemo.set({ deck, f: [], m: [] });
         }
 
-        function draw() {
-            ctx.clearRect(0,0,W,H);
-            ctx.strokeStyle = "#eee"; ctx.lineWidth = 5;
-            ctx.beginPath(); ctx.arc(W/2, H/2, 70, 0, Math.PI*2); ctx.stroke();
-            ctx.strokeStyle = "#333"; ctx.lineWidth = 10;
-            ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
-            ctx.fillStyle = "#000"; ctx.fillRect(W*0.25, -10, W*0.5, 35); ctx.fillRect(W*0.25, H-25, W*0.5, 35);
-            ctx.fillStyle = "#333"; ctx.beginPath(); ctx.arc(ball.x, ball.y, 20, 0, Math.PI*2); ctx.fill();
-            drawP(pads.gael.x, pads.gael.y, "var(--gael)");
-            drawP(pads.mar.x, pads.mar.y, "var(--mar)");
-        }
-
-        function drawP(x, y, c) {
-            ctx.fillStyle = "white"; ctx.shadowBlur=15; ctx.shadowColor=c;
-            ctx.beginPath(); ctx.arc(x,y,38,0,Math.PI*2); ctx.fill();
-            ctx.strokeStyle=c; ctx.lineWidth=6; ctx.stroke();
-            ctx.beginPath(); ctx.arc(x,y,15,0,Math.PI*2); ctx.stroke();
-            ctx.shadowBlur=0;
-        }
-
+        // TIMER ANIVERSARIO
         const aniversario = new Date("2025-12-31T00:00:00").getTime();
         setInterval(() => {
             const diff = new Date().getTime() - aniversario;
