@@ -7,63 +7,55 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root { --gael-blue: #007bff; --mar-pink: #ff69b4; }
-        body { font-family: 'Segoe UI', sans-serif; background: #000; color: white; margin: 0; overflow: hidden; touch-action: none; }
+        :root { --gael: #007bff; --mar: #ff4d6d; }
+        body { font-family: 'Arial Black', sans-serif; background: #000; margin: 0; overflow: hidden; touch-action: none; }
         .screen { display: none; height: 100vh; width: 100vw; flex-direction: column; align-items: center; box-sizing: border-box; }
         .active { display: flex; }
         
-        /* Menú Principal Estilo */
-        .main-bg { background: radial-gradient(circle, #fff5f5 0%, #ffe0e6 100%); color: #b91d47; }
-        .header { background: #ff4d6d; color: white; padding: 15px; border-radius: 0 0 25px 25px; width: 100%; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .menu-btn { background: #ff4d6d; color: white; border: none; padding: 15px; margin: 10px; border-radius: 15px; width: 85%; font-size: 18px; font-weight: bold; box-shadow: 0 4px 0 #d93654; }
+        /* Marcador Lateral Izquierdo */
+        .side-score { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; z-index: 10; }
+        .score-box { width: 30px; height: 40px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; border: 2px solid white; }
 
-        /* Hockey Diseño Foto */
-        #hockeyCanvas { background: #1a1a1a; box-shadow: inset 0 0 50px #000; border-left: 5px solid var(--mar-pink); border-right: 5px solid var(--gael-blue); }
-        .score-hockey { font-size: 2rem; font-weight: bold; background: white; color: #333; width: 100%; padding: 10px 0; border-bottom: 4px solid #444; }
-        
-        /* Modal de Victoria */
-        #win-modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,255,255,0.95); padding: 30px; border-radius: 25px; border: 5px solid #ff4d6d; width: 80%; color: #333; z-index: 100; text-align: center; }
-        .win-btn-play { background: #007bff; color: white; border: none; padding: 12px; border-radius: 12px; margin: 5px; width: 100%; font-weight: bold; }
-        .win-btn-exit { background: #ff4d6d; color: white; border: none; padding: 12px; border-radius: 12px; margin: 5px; width: 100%; font-weight: bold; }
+        /* Canvas Estilo Foto */
+        #hockeyCanvas { background: white; border: 10px solid #000; }
+
+        /* Modal Victoria */
+        #win-modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); padding: 25px; border-radius: 20px; width: 80%; color: white; z-index: 100; text-align: center; border: 3px solid white; }
+        .win-btn { padding: 12px; margin: 8px; width: 100%; border-radius: 10px; border: none; font-weight: bold; font-size: 1rem; }
+
+        /* Menú Principal */
+        .main-menu { background: #fff5f5; justify-content: center; }
+        .menu-btn { background: #ff4d6d; color: white; border: none; padding: 15px; margin: 10px; border-radius: 15px; width: 85%; font-weight: bold; font-size: 1.1rem; box-shadow: 0 4px 0 #d93654; }
     </style>
 </head>
 <body>
 
-    <div id="login" class="screen active main-bg" style="justify-content: center;">
-        <h1 style="font-size: 2.5rem;">🦁 Gael & Mar 🐨</h1>
-        <p>¿Quién jugará hoy?</p>
-        <button class="menu-btn" style="background: var(--gael-blue); box-shadow: 0 4px 0 #0056b3;" onclick="setUser('gael')">Soy Gael</button>
-        <button class="menu-btn" style="background: var(--mar-pink); box-shadow: 0 4px 0 #c71585;" onclick="setUser('mar')">Soy Mar</button>
+    <div id="login" class="screen active" style="background:#fff5f5; justify-content:center;">
+        <h1 style="color:#b91d47">❤️ Gael & Mar</h1>
+        <button class="menu-btn" style="background:var(--gael)" onclick="setUser('gael')">Soy Gael</button>
+        <button class="menu-btn" style="background:var(--mar)" onclick="setUser('mar')">Soy Mar</button>
     </div>
 
-    <div id="menu" class="screen main-bg">
-        <div class="header"><h1>Gael & Mar Hub</h1></div>
-        <div style="margin-top: 50px; background:white; padding:20px; border-radius:20px; width:80%; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
-            <p>Nuestro tiempo juntos:</p>
-            <span id="timer" style="color:#ff4d6d; font-size:1.5rem; font-weight:bold;"></span>
-        </div>
-        <button class="menu-btn" onclick="showScreen('gato')">❌ Jugar al Gato ⭕</button>
-        <button class="menu-btn" onclick="showScreen('hockey')">🏒 Air Hockey 🏒</button>
+    <div id="menu" class="screen main-menu">
+        <h2 style="color:#b91d47">Nuestro Tiempo:</h2>
+        <div id="timer" style="font-size:1.5rem; color:#ff4d6d; margin-bottom:30px;"></div>
+        <button class="menu-btn" onclick="showScreen('hockey')">Jugar Air Hockey 🏒</button>
+        <button class="menu-btn" style="background:#888" onclick="showScreen('login')">Cerrar Sesión</button>
     </div>
 
     <div id="hockey" class="screen">
-        <div class="score-hockey" id="score-h">Gael 0 - 0 Mar</div>
-        <canvas id="hockeyCanvas"></canvas>
-        
-        <div id="win-modal">
-            <h2 id="win-text">¡HA GANADO GAEL!</h2>
-            <button class="win-btn-play" onclick="resetHockeyMatch()">JUGAR DE NUEVO</button>
-            <button class="win-btn-exit" onclick="showScreen('menu')">SALIR AL MENÚ</button>
+        <div class="side-score">
+            <div id="side-mar" class="score-box" style="background:var(--mar); border-radius: 0 5px 0 0;">0</div>
+            <div id="side-gael" class="score-box" style="background:var(--gael); border-radius: 0 0 5px 0;">0</div>
         </div>
-    </div>
 
-    <div id="gato" class="screen main-bg">
-        <h2 id="status-gato">Turno: ❌</h2>
-        <div style="display:grid; grid-template-columns:repeat(3,85px); gap:10px; margin:20px 0;">
-            <script>for(let i=0; i<9; i++) document.write(`<div style="width:85px; height:85px; background:white; border:2px solid #ffc1cc; font-size:2.5rem; display:flex; align-items:center; justify-content:center; border-radius:15px; color:#333;" onclick="makeMove(${i})" class="cell"></div>`);</script>
+        <canvas id="hockeyCanvas"></canvas>
+
+        <div id="win-modal">
+            <h1 id="win-name">¡GANASTE!</h1>
+            <button class="win-btn" style="background:var(--gael)" onclick="resetMatch()">JUGAR DE NUEVO</button>
+            <button class="win-btn" style="background:#555" onclick="showScreen('menu')">SALIR</button>
         </div>
-        <button class="menu-btn" onclick="resetGato()">Reiniciar</button>
-        <button class="menu-btn" style="background:#888" onclick="showScreen('menu')">Volver</button>
     </div>
 
     <script>
@@ -77,132 +69,130 @@
             appId: "1:90763304589:web:91e927504cb88fca6e8cc4"
         };
         firebase.initializeApp(firebaseConfig);
-        const dbGato = firebase.database().ref('juego_gato');
-        const dbHockey = firebase.database().ref('juego_hockey');
+        const db = firebase.database().ref('juego_hockey');
 
         let currentUser = "";
-        const aniversario = new Date("2025-12-31T00:00:00").getTime();
-        setInterval(() => {
-            const diff = new Date().getTime() - aniversario;
-            const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-            document.getElementById("timer").innerText = `${d}d ${h}h ${m}m ${s}s`;
-        }, 1000);
-
-        function setUser(name) { currentUser = name; showScreen('menu'); }
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            if(id === 'hockey') initHockey();
-            document.getElementById('win-modal').style.display = 'none';
-        }
-
-        // --- GATO LÓGICA ---
-        function makeMove(i) {
-            dbGato.once('value', s => {
-                let d = s.val() || {board:Array(9).fill(""), turn:"❌"};
-                if(d.board[i]==="" && !d.w) { d.board[i]=d.turn; d.turn=d.turn==="❌"?"⭕":"❌"; dbGato.set(d); }
-            });
-        }
-        function resetGato() { dbGato.set({board:Array(9).fill(""), turn:"❌"}); }
-        dbGato.on('value', s => {
-            const d = s.val(); if(!d) return;
-            document.querySelectorAll('.cell').forEach((c,i) => {
-                c.innerText = d.board[i];
-                c.style.color = d.board[i] === "❌" ? "#007bff" : "#ff69b4";
-            });
-        });
-
-        // --- HOCKEY LÓGICA FOTO ---
+        const W = window.innerWidth, H = window.innerHeight;
         const canvas = document.getElementById('hockeyCanvas');
         const ctx = canvas.getContext('2d');
-        const W = window.innerWidth, H = window.innerHeight * 0.75;
         canvas.width = W; canvas.height = H;
 
         let ball = { x:W/2, y:H/2, vx:0, vy:0 };
-        let pads = { gael:{x:W/2, y:H-80}, mar:{x:W/2, y:80} };
+        let pads = { gael:{x:W/2, y:H-100}, mar:{x:W/2, y:100} };
         let gameActive = true;
+
+        function setUser(u) { currentUser = u; showScreen('menu'); }
+        function showScreen(s) { 
+            document.querySelectorAll('.screen').forEach(e => e.classList.remove('active'));
+            document.getElementById(s).classList.add('active');
+            if(s === 'hockey') initHockey();
+        }
 
         function initHockey() {
             canvas.ontouchmove = (e) => {
                 if(!gameActive) return;
-                const rect = canvas.getBoundingClientRect();
-                const tx = e.touches[0].clientX - rect.left;
-                const ty = e.touches[0].clientY - rect.top;
-                if(currentUser === 'gael' && ty > H/2) dbHockey.child('gael').set({x:tx, y:ty});
-                if(currentUser === 'mar' && ty < H/2) dbHockey.child('mar').set({x:tx, y:ty});
+                const ty = e.touches[0].clientY;
+                const tx = Math.max(40, Math.min(W-40, e.touches[0].clientX));
+                if(currentUser === 'gael' && ty > H/2) db.child('gael').set({x:tx, y:ty});
+                if(currentUser === 'mar' && ty < H/2) db.child('mar').set({x:tx, y:ty});
             };
 
             if(currentUser === 'gael') setInterval(physics, 16);
 
-            dbHockey.on('value', s => {
-                const d = s.val(); if(!d) return;
+            db.on('value', s => {
+                const d = s.val() || {};
                 pads = { gael: d.gael || pads.gael, mar: d.mar || pads.mar };
                 ball = d.ball || ball;
                 const sg = d.scoreG || 0, sm = d.scoreM || 0;
-                document.getElementById('score-h').innerText = `Gael ${sg} - ${sm} Mar`;
                 
+                document.getElementById('side-gael').innerText = sg;
+                document.getElementById('side-mar').innerText = sm;
+
                 if(sg >= 7 || sm >= 7) {
                     gameActive = false;
                     document.getElementById('win-modal').style.display = 'block';
-                    document.getElementById('win-text').innerText = `¡HA GANADO ${sg>=7?'GAEL':'MAR'}! 🎉`;
-                } else { gameActive = true; }
+                    document.getElementById('win-name').innerText = `¡HA GANADO ${sg>=7?'GAEL':'MAR'}! 🎉`;
+                } else {
+                    gameActive = true;
+                    document.getElementById('win-modal').style.display = 'none';
+                }
                 draw();
             });
         }
 
-        function resetHockeyMatch() {
-            dbHockey.update({ scoreG: 0, scoreM: 0, ball: { x:W/2, y:H/2, vx:0, vy:0 } });
-            document.getElementById('win-modal').style.display = 'none';
+        function resetMatch() {
+            db.update({scoreG:0, scoreM:0, ball:{x:W/2, y:H/2, vx:0, vy:0}});
         }
 
         function physics() {
             if(!gameActive) return;
             ball.x += ball.vx; ball.y += ball.vy;
             ball.vx *= 0.99; ball.vy *= 0.99;
-            if(ball.x < 15 || ball.x > W-15) ball.vx *= -1;
-            
-            if(ball.y < 20 || ball.y > H-20) {
-                if(ball.x > W*0.3 && ball.x < W*0.7) {
-                    dbHockey.once('value', s => {
+
+            if(ball.x < 25 || ball.x > W-25) ball.vx *= -1;
+
+            // Porterías (Zona negra)
+            if(ball.y < 30 || ball.y > H-30) {
+                if(ball.x > W*0.25 && ball.x < W*0.75) {
+                    db.once('value', s => {
                         let d = s.val() || {};
-                        if(ball.y < 20) d.scoreG = (d.scoreG || 0) + 1; else d.scoreM = (d.scoreM || 0) + 1;
-                        dbHockey.update({ball:{x:W/2, y:H/2, vx:0, vy:0}, scoreG:d.scoreG, scoreM:d.scoreM});
+                        if(ball.y < 30) d.scoreG = (d.scoreG || 0) + 1;
+                        else d.scoreM = (d.scoreM || 0) + 1;
+                        db.update({ball:{x:W/2, y:H/2, vx:0, vy:0}, scoreG:d.scoreG, scoreM:d.scoreM});
                     });
                 } else { ball.vy *= -1; }
             }
+
             [pads.gael, pads.mar].forEach(p => {
                 let dist = Math.hypot(ball.x - p.x, ball.y - p.y);
-                if(dist < 45) {
+                if(dist < 50) {
                     let angle = Math.atan2(ball.y - p.y, ball.x - p.x);
-                    ball.vx = Math.cos(angle) * 8; ball.vy = Math.sin(angle) * 8;
+                    ball.vx = Math.cos(angle) * 9; ball.vy = Math.sin(angle) * 9;
                 }
             });
-            dbHockey.child('ball').set(ball);
+            db.child('ball').set(ball);
         }
 
         function draw() {
             ctx.clearRect(0,0,W,H);
-            // Diseño de la foto: Resplandor en orillas
-            ctx.shadowBlur = 20; 
-            ctx.strokeStyle = "rgba(255,105,180,0.5)"; ctx.strokeRect(0,0,W,2); // Rosa arriba
-            ctx.strokeStyle = "rgba(0,123,255,0.5)"; ctx.strokeRect(0,H-2,W,2); // Azul abajo
+            // Piso Blanco y líneas decorativas
+            ctx.strokeStyle = "rgba(0,0,0,0.05)"; ctx.lineWidth = 5;
+            ctx.beginPath(); ctx.arc(W/2, H/2, 80, 0, Math.PI*2); ctx.stroke();
             
-            // Ficha (Disco)
-            ctx.shadowBlur = 0; ctx.fillStyle = "#555";
-            ctx.beginPath(); ctx.arc(ball.x, ball.y, 15, 0, Math.PI*2); ctx.fill();
+            // Media Cancha (Línea Negra Fuerte)
+            ctx.strokeStyle = "#000"; ctx.lineWidth = 8;
+            ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
+            ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(W/2, H/2, 25, 0, Math.PI*2); ctx.fill();
+            ctx.stroke();
 
-            // Paletas con Anillos (como en la foto)
+            // Porterías (Negras)
+            ctx.fillStyle = "#000";
+            ctx.fillRect(W*0.25, -5, W*0.5, 35); // Arriba
+            ctx.fillRect(W*0.25, H-30, W*0.5, 35); // Abajo
+
+            // Disco (Ficha Negra)
+            ctx.fillStyle = "#333";
+            ctx.beginPath(); ctx.arc(ball.x, ball.y, 18, 0, Math.PI*2); ctx.fill();
+
+            // Paletas (Anillos Neón como en la foto)
             drawPaddle(pads.gael.x, pads.gael.y, "#007bff");
-            drawPaddle(pads.mar.x, pads.mar.y, "#ff69b4");
+            drawPaddle(pads.mar.x, pads.mar.y, "#ff4d6d");
         }
 
         function drawPaddle(x, y, color) {
             ctx.shadowBlur = 15; ctx.shadowColor = color;
-            ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(x, y, 30, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = color; ctx.lineWidth = 5; ctx.stroke();
-            ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI*2); ctx.stroke();
+            ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(x, y, 35, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = color; ctx.lineWidth = 6; ctx.stroke();
+            ctx.beginPath(); ctx.arc(x, y, 15, 0, Math.PI*2); ctx.stroke();
             ctx.shadowBlur = 0;
         }
+
+        const aniversario = new Date("2025-12-31T00:00:00").getTime();
+        setInterval(() => {
+            const diff = new Date().getTime() - aniversario;
+            const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+            document.getElementById("timer").innerText = `${d}d ${h}h ${m}m ${s}s`;
+        }, 1000);
     </script>
 </body>
 </html>
