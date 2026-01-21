@@ -22,13 +22,14 @@
         .gato-grid { display: grid; grid-template-columns: repeat(3, 90px); gap: 12px; margin: 20px 0; }
         .cell { width: 90px; height: 90px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
 
-        /* Estilo Memorama */
-        .memory-grid { display: grid; grid-template-columns: repeat(4, 70px); gap: 10px; perspective: 1000px; }
-        .card { width: 70px; height: 70px; position: relative; transform-style: preserve-3d; transition: transform 0.6s; cursor: pointer; }
+        /* Estilo Memorama Mejorado */
+        .memory-grid { display: grid; grid-template-columns: repeat(4, 75px); gap: 10px; perspective: 1000px; margin-top: 20px; }
+        .card { width: 75px; height: 75px; position: relative; transform-style: preserve-3d; transition: transform 0.5s; cursor: pointer; }
         .card.flipped { transform: rotateY(180deg); }
-        .card.matched { visibility: hidden; opacity: 0; }
-        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background: white; }
-        .card-back { transform: rotateY(180deg); }
+        .card.matched { opacity: 0.3; pointer-events: none; transform: rotateY(180deg) scale(0.9); transition: 0.5s; }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; font-size: 2rem; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background: white; border: 2px solid #eee; }
+        .card-back { transform: rotateY(180deg); background: #fff; border-color: var(--mar); }
+        .card-front { background: linear-gradient(45deg, var(--mar), #ff8fa3); color: white; font-size: 1.5rem; font-weight: bold; }
 
         .timer-box { background: white; padding: 15px; border-radius: 20px; margin-top: 60px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; width: 80%; }
     </style>
@@ -62,14 +63,13 @@
     </div>
 
     <div id="memo" class="screen">
-        <h2 id="status-memo">Encuentra las parejas</h2>
+        <h2 id="status-memo" style="margin-top: 50px;">Memorama</h2>
         <div class="memory-grid" id="grid-memo"></div>
-        <button class="btn" style="margin-top:20px;" onclick="resetMemo()">Reiniciar</button>
+        <button class="btn" style="margin-top:20px;" onclick="resetMemo()">Mezclar Cartas</button>
         <button class="btn" style="background:#888; box-shadow:0 5px 0 #666;" onclick="showScreen('menu')">Volver</button>
     </div>
 
     <script>
-        // CONFIGURACIÓN FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyAHYSY7wUcZ0zPGDXSRgpwDLcN6iTDjg6I",
             authDomain: "minijuego-eabcb.firebaseapp.com",
@@ -80,8 +80,8 @@
             appId: "1:90763304589:web:91e927504cb88fca6e8cc4"
         };
         firebase.initializeApp(firebaseConfig);
-        const dbGato = firebase.database().ref('juego_gato');
-        const dbMemo = firebase.database().ref('juego_memo');
+        const dbGato = firebase.database().ref('juego_gato_v3');
+        const dbMemo = firebase.database().ref('juego_memo_v3');
 
         let user = "";
         const emojis = ["❤️", "🐱", "🐨", "🦁", "🧸", "🌹", "💎", "🍭"];
@@ -118,26 +118,39 @@
         // --- LÓGICA MEMORAMA ---
         function initMemo() {
             dbMemo.on('value', s => {
-                const d = s.val(); if(!d) return;
+                let d = s.val();
+                if(!d || !d.deck) { resetMemo(); return; }
+                
                 const grid = document.getElementById('grid-memo');
                 grid.innerHTML = '';
                 d.deck.forEach((emoji, i) => {
                     const card = document.createElement('div');
-                    card.className = 'card' + (d.f.includes(i) ? ' flipped' : '') + (d.m.includes(i) ? ' matched' : '');
-                    card.innerHTML = `<div class="card-face">?</div><div class="card-face card-back">${emoji}</div>`;
+                    let isFlipped = (d.f && d.f.includes(i));
+                    let isMatched = (d.m && d.m.includes(i));
+                    
+                    card.className = 'card' + (isFlipped || isMatched ? ' flipped' : '') + (isMatched ? ' matched' : '');
+                    card.innerHTML = `<div class="card-face card-front">❤️</div><div class="card-face card-back">${emoji}</div>`;
                     card.onclick = () => flipMemo(i);
                     grid.appendChild(card);
                 });
+                
+                if(d.m && d.m.length === 16) document.getElementById('status-memo').innerText = "¡Ganaron! ❤️";
+                else document.getElementById('status-memo').innerText = "Memorama";
             });
         }
+
         function flipMemo(i) {
             dbMemo.once('value', s => {
                 let d = s.val();
+                if (!d.f) d.f = [];
+                if (!d.m) d.m = [];
                 if (d.m.includes(i) || d.f.includes(i) || d.f.length >= 2) return;
+
                 d.f.push(i);
                 if (d.f.length === 2) {
                     if (d.deck[d.f[0]] === d.deck[d.f[1]]) {
-                        d.m.push(d.f[0], d.f[1]); d.f = [];
+                        d.m.push(d.f[0], d.f[1]);
+                        d.f = [];
                     } else {
                         setTimeout(() => { dbMemo.child('f').set([]); }, 1000);
                     }
@@ -145,9 +158,11 @@
                 dbMemo.set(d);
             });
         }
+
         function resetMemo() {
             const deck = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
-            dbMemo.set({ deck, f: [], m: [] });
+            dbMemo.set({ deck: deck, f: [99], m: [99] }); // Forzar actualización con arrays no vacíos
+            setTimeout(() => dbMemo.update({f: [], m: []}), 100);
         }
 
         // TIMER ANIVERSARIO
