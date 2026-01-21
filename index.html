@@ -11,35 +11,49 @@
         body { font-family: 'Segoe UI', sans-serif; background: #000; margin: 0; overflow: hidden; touch-action: none; color: white; }
         .screen { display: none; height: 100vh; width: 100vw; flex-direction: column; align-items: center; box-sizing: border-box; }
         .active { display: flex; }
+        
+        /* UI Estilo Apple/Limpio */
         .main-ui { background: var(--bg); color: #b91d47; justify-content: center; }
-        .header { background: var(--mar); color: white; padding: 20px; border-radius: 0 0 30px 30px; width: 100%; position: absolute; top: 0; text-align: center; }
-        .menu-btn { background: var(--mar); color: white; border: none; padding: 15px; margin: 10px; border-radius: 15px; width: 85%; font-size: 1.1rem; font-weight: bold; box-shadow: 0 4px 0 #d93654; }
+        .header { background: var(--mar); color: white; padding: 15px; border-radius: 0 0 25px 25px; width: 100%; position: absolute; top: 0; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .menu-btn { background: var(--mar); color: white; border: none; padding: 15px; margin: 8px; border-radius: 15px; width: 85%; font-size: 1.1rem; font-weight: bold; box-shadow: 0 4px 0 #d93654; active: transform: translateY(2px); }
+
+        /* Gato Diseño */
+        .gato-grid { display: grid; grid-template-columns: repeat(3, 95px); gap: 10px; margin: 20px 0; }
+        .cell { width: 95px; height: 95px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.05); color: #333; }
+
+        /* Hockey Diseño */
         #hockeyCanvas { background: white; }
-        .side-score { position: absolute; left: 0; top: 50%; transform: translateY(-50%); z-index: 10; display: flex; flex-direction: column; }
+        .side-score { position: absolute; left: 0; top: 50%; transform: translateY(-50%); z-index: 10; }
         .s-box { width: 35px; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid white; font-size: 1.2rem; }
-        #goal-announcement { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; font-weight: bold; color: #ffcd05; text-shadow: 0 0 20px #000; z-index: 50; pointer-events: none; animation: pop 0.8s ease-out; }
-        @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; } }
+        
         #win-modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 25px; width: 80%; color: #333; z-index: 100; text-align: center; border: 4px solid var(--mar); }
     </style>
 </head>
 <body>
 
     <div id="login" class="screen active main-ui">
-        <h1>❤️ Gael & Mar</h1>
-        <button class="menu-btn" style="background:var(--gael); box-shadow: 0 4px 0 #0056b3;" onclick="setUser('gael')">Soy Gael 🦁</button>
-        <button class="menu-btn" style="background:var(--mar);" onclick="setUser('mar')">Soy Mar 🐨</button>
+        <h1>🦁 Gael & Mar 🐨</h1>
+        <button class="menu-btn" style="background:var(--gael); box-shadow: 0 4px 0 #0056b3;" onclick="setUser('gael')">Soy Gael</button>
+        <button class="menu-btn" style="background:var(--mar);" onclick="setUser('mar')">Soy Mar</button>
     </div>
 
     <div id="menu" class="screen main-ui">
-        <div class="header"><h2>Gael & Mar Hub</h2></div>
-        <div style="background:white; padding:20px; border-radius:20px; width:80%; margin-top:80px; box-shadow:0 5px 15px rgba(0,0,0,0.1);">
-            <strong>Tiempo Juntos:</strong><br><span id="timer" style="color:var(--mar); font-size:1.3rem; font-weight:bold;"></span>
+        <div class="header"><h3>❤️ Gael & Mar Hub</h3></div>
+        <div style="background:white; padding:20px; border-radius:20px; width:80%; margin-top:60px; box-shadow:0 5px 15px rgba(0,0,0,0.05);">
+            <small>Tiempo Juntos:</small><br><span id="timer" style="color:var(--mar); font-size:1.2rem; font-weight:bold;"></span>
         </div>
+        <button class="menu-btn" onclick="showScreen('gato')">Jugar al Gato ❌⭕</button>
         <button class="menu-btn" onclick="showScreen('hockey')">Air Hockey 🏒</button>
     </div>
 
+    <div id="gato" class="screen main-ui">
+        <h2 id="status-gato">Turno: ❌</h2>
+        <div class="gato-grid"><script>for(let i=0; i<9; i++) document.write(`<div class="cell" onclick="makeMove(${i})"></div>`);</script></div>
+        <button class="menu-btn" onclick="resetGato()">Reiniciar Tablero</button>
+        <button class="menu-btn" style="background:#888; box-shadow:0 4px 0 #666;" onclick="showScreen('menu')">Volver al Menú</button>
+    </div>
+
     <div id="hockey" class="screen">
-        <div id="goal-announcement">¡GOL!</div>
         <div class="side-score">
             <div id="s-mar" class="s-box" style="background:var(--mar); border-radius: 0 8px 0 0;">0</div>
             <div id="s-gael" class="s-box" style="background:var(--gael); border-radius: 0 0 8px 0;">0</div>
@@ -63,7 +77,8 @@
             appId: "1:90763304589:web:91e927504cb88fca6e8cc4"
         };
         firebase.initializeApp(firebaseConfig);
-        const dbH = firebase.database().ref('hockey');
+        const dbG = firebase.database().ref('juego_gato_v2');
+        const dbH = firebase.database().ref('juego_hockey_v2');
 
         let currentUser = "";
         const W = window.innerWidth, H = window.innerHeight;
@@ -73,8 +88,7 @@
 
         let ball = { x:W/2, y:H/2, vx:0, vy:0 };
         let pads = { gael:{x:W/2, y:H-100}, mar:{x:W/2, y:100} };
-        let active = true;
-        let isResetting = false;
+        let gameActive = true;
 
         function setUser(u) { currentUser = u; showScreen('menu'); }
         function showScreen(s) {
@@ -83,74 +97,72 @@
             if(s === 'hockey') initHockey();
         }
 
+        // --- GATO ---
+        function makeMove(i) {
+            dbG.once('value', s => {
+                let d = s.val() || {b:Array(9).fill(""), t:"❌"};
+                if(d.b[i]==="" && !checkWinGato(d.b)) { 
+                    d.b[i]=d.t; d.t=d.t==="❌"?"⭕":"❌"; dbG.set(d); 
+                }
+            });
+        }
+        function checkWinGato(b) {
+            const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            return wins.some(w => b[w[0]]!=="" && b[w[0]]===b[w[1]] && b[w[0]]===b[w[2]]);
+        }
+        function resetGato() { dbG.set({b:Array(9).fill(""), t:"❌"}); }
+        dbG.on('value', s => {
+            const d = s.val(); if(!d) return;
+            document.querySelectorAll('.cell').forEach((c,i) => {
+                c.innerText = d.b[i];
+                c.style.color = d.b[i]==="❌"? "var(--gael)" : "var(--mar)";
+            });
+            document.getElementById('status-gato').innerText = "Turno: " + d.t;
+        });
+
+        // --- HOCKEY ---
         function initHockey() {
             canvas.ontouchmove = (e) => {
-                if(!active || isResetting) return;
+                if(!gameActive) return;
                 const tx = Math.max(35, Math.min(W-35, e.touches[0].clientX));
                 const ty = e.touches[0].clientY;
                 if(currentUser==='gael' && ty > H/2) dbH.child('gael').set({x:tx, y:ty});
                 if(currentUser==='mar' && ty < H/2) dbH.child('mar').set({x:tx, y:ty});
             };
-
             if(currentUser==='gael') setInterval(physics, 16);
-
             dbH.on('value', s => {
                 const d = s.val() || {};
                 pads = { gael: d.gael || pads.gael, mar: d.mar || pads.mar };
-                const sg = d.scoreG||0, sm = d.scoreM||0;
-                
-                // Detectar si el marcador subió
-                const oldG = parseInt(document.getElementById('s-gael').innerText);
-                const oldM = parseInt(document.getElementById('s-mar').innerText);
-                if(sg > oldG || sm > oldM) { showGoalAnim(); }
-
                 ball = d.ball || {x:W/2, y:H/2, vx:0, vy:0};
+                const sg = d.scoreG||0, sm = d.scoreM||0;
                 document.getElementById('s-gael').innerText = sg;
                 document.getElementById('s-mar').innerText = sm;
-
                 if(sg>=7 || sm>=7) {
-                    active=false; document.getElementById('win-modal').style.display='block';
+                    gameActive=false; document.getElementById('win-modal').style.display='block';
                     document.getElementById('win-text').innerText = `¡HA GANADO ${sg>=7?'GAEL':'MAR'}! 🎉`;
-                } else { active=true; document.getElementById('win-modal').style.display='none'; }
+                } else { gameActive=true; document.getElementById('win-modal').style.display='none'; }
                 draw();
             });
-        }
-
-        function showGoalAnim() {
-            const el = document.getElementById('goal-announcement');
-            el.style.display = 'block';
-            setTimeout(() => { el.style.display = 'none'; }, 800);
         }
 
         function resetMatch() { dbH.update({scoreG:0, scoreM:0, ball:{x:W/2, y:H/2, vx:0, vy:0}}); }
 
         function physics() {
-            if(!active || isResetting) return;
+            if(!gameActive) return;
             ball.x += ball.vx; ball.y += ball.vy;
             ball.vx *= 0.99; ball.vy *= 0.99;
-
             if(ball.x < 25 || ball.x > W-25) ball.vx *= -1.05;
 
-            // LÓGICA DE GOL Y AUTOGOL
+            // GOL LOGIC
             if(ball.y < 30 || ball.y > H-30) {
                 if(ball.x > W*0.25 && ball.x < W*0.75) {
-                    isResetting = true; // Bloquea la física un momento
                     dbH.once('value', s => {
                         let d = s.val() || {scoreG:0, scoreM:0};
-                        // Si entra arriba (portería Mar), punto para Gael. Si entra abajo, punto para Mar.
                         if(ball.y < 30) d.scoreG++; else d.scoreM++;
-                        
-                        dbH.update({
-                            scoreG: d.scoreG, 
-                            scoreM: d.scoreM, 
-                            ball: {x:W/2, y:H/2, vx:0, vy:0} 
-                        }).then(() => {
-                            setTimeout(() => { isResetting = false; }, 1000);
-                        });
+                        dbH.update({scoreG:d.scoreG, scoreM:d.scoreM, ball:{x:W/2, y:H/2, vx:0, vy:0}});
                     });
                 } else { ball.vy *= -1.05; }
             }
-
             [pads.gael, pads.mar].forEach(p => {
                 let dist = Math.hypot(ball.x - p.x, ball.y - p.y);
                 if(dist < 50) {
@@ -165,13 +177,9 @@
             ctx.clearRect(0,0,W,H);
             ctx.strokeStyle = "#eee"; ctx.lineWidth = 5;
             ctx.beginPath(); ctx.arc(W/2, H/2, 70, 0, Math.PI*2); ctx.stroke();
-            ctx.strokeStyle = "#000"; ctx.lineWidth = 10;
+            ctx.strokeStyle = "#333"; ctx.lineWidth = 10;
             ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
-            // Porterías Negras
-            ctx.fillStyle = "#000"; 
-            ctx.fillRect(W*0.25, -10, W*0.5, 40); 
-            ctx.fillRect(W*0.25, H-30, W*0.5, 40);
-            // Disco
+            ctx.fillStyle = "#000"; ctx.fillRect(W*0.25, -10, W*0.5, 35); ctx.fillRect(W*0.25, H-25, W*0.5, 35);
             ctx.fillStyle = "#333"; ctx.beginPath(); ctx.arc(ball.x, ball.y, 20, 0, Math.PI*2); ctx.fill();
             drawP(pads.gael.x, pads.gael.y, "var(--gael)");
             drawP(pads.mar.x, pads.mar.y, "var(--mar)");
