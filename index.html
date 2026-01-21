@@ -12,7 +12,7 @@
         .active { display: flex; }
         .header { background: #ff4d6d; color: white; padding: 15px; border-radius: 0 0 25px 25px; width: 100%; z-index: 10; }
         .menu-btn { background: #ff4d6d; color: white; border: none; padding: 15px; margin: 10px; border-radius: 15px; width: 85%; font-size: 18px; font-weight: bold; box-shadow: 0 4px 0 #d93654; }
-        #hockeyCanvas { background: #222; border: 2px solid #444; touch-action: none; width: 100vw; height: 75vh; }
+        #hockeyCanvas { background: #222; touch-action: none; width: 100vw; height: 75vh; }
         .score-board { font-size: 1.8rem; font-weight: bold; padding: 10px; color: #ff4d6d; background: #fff; width: 100%; }
     </style>
 </head>
@@ -20,7 +20,7 @@
 
     <div id="login" class="screen active" style="justify-content: center; background: #fff5f5; color: #b91d47;">
         <h1>❤️ Gael & Mar</h1>
-        <p>Selecciona tu perfil para jugar:</p>
+        <p>¿Quién juega hoy?</p>
         <button class="menu-btn" style="background:#007bff; box-shadow:0 4px 0 #0056b3;" onclick="setUser('gael')">Soy Gael 🦁</button>
         <button class="menu-btn" style="background:#ff69b4; box-shadow:0 4px 0 #c71585;" onclick="setUser('mar')">Soy Mar 🐨</button>
     </div>
@@ -47,7 +47,7 @@
     <div id="hockey" class="screen">
         <div class="score-board" id="score-h">Gael 0 - 0 Mar</div>
         <canvas id="hockeyCanvas"></canvas>
-        <button class="menu-btn" style="background:#888; margin: 10px;" onclick="showScreen('menu')">Abandonar Partida</button>
+        <button class="menu-btn" style="background:#888; margin: 10px;" onclick="exitHockey()">Abandonar Partida</button>
     </div>
 
     <script>
@@ -79,6 +79,11 @@
             if(id === 'hockey') initHockey();
         }
 
+        function exitHockey() {
+            dbHockey.update({ scoreG: 0, scoreM: 0, ball: { x:W/2, y:H/2, vx:0, vy:0 } });
+            showScreen('menu');
+        }
+
         // --- GATO ---
         function makeMove(i) {
             dbGato.once('value', s => {
@@ -103,14 +108,15 @@
         canvas.width = W; canvas.height = H;
 
         let ball = { x:W/2, y:H/2, vx:0, vy:0 };
-        let pads = { gael:{x:W/2, y:H-60}, mar:{x:W/2, y:60} };
+        let pads = { gael:{x:W/2, y:H-80}, mar:{x:W/2, y:80} };
 
         function initHockey() {
             canvas.ontouchmove = (e) => {
                 e.preventDefault();
                 const rect = canvas.getBoundingClientRect();
                 const tx = Math.max(30, Math.min(W-30, e.touches[0].clientX - rect.left));
-                const ty = e.touches[0].clientY - rect.top;
+                const ty = e.touches[0].clientY - rect.top; // Ajustado para ser el centro exacto
+                
                 if(currentUser === 'gael' && ty > H/2) dbHockey.child('gael').set({x:tx, y:ty});
                 if(currentUser === 'mar' && ty < H/2) dbHockey.child('mar').set({x:tx, y:ty});
             };
@@ -128,17 +134,16 @@
 
         function physics() {
             ball.x += ball.vx; ball.y += ball.vy;
-            ball.vx *= 0.99; ball.vy *= 0.99; // Fricción suave
+            ball.vx *= 0.985; ball.vy *= 0.985; 
 
-            if(ball.x < 15 || ball.x > W-15) ball.vx *= -1;
+            if(ball.x < 20 || ball.x > W-20) ball.vx *= -1;
 
-            // Porterías y Rebotes Superiores/Inferiores
-            if(ball.y < 20 || ball.y > H-20) {
-                if(ball.x > W*0.3 && ball.x < W*0.7) { // Zona de Gol
+            if(ball.y < 25 || ball.y > H-25) {
+                if(ball.x > W*0.3 && ball.x < W*0.7) { 
                     dbHockey.once('value', s => {
                         let d = s.val() || {};
-                        if(ball.y < 20) d.scoreG = (d.scoreG || 0) + 1; // Gol de Gael
-                        else d.scoreM = (d.scoreM || 0) + 1; // Gol de Mar
+                        if(ball.y < 25) d.scoreG = (d.scoreG || 0) + 1; 
+                        else d.scoreM = (d.scoreM || 0) + 1; 
                         ball = { x:W/2, y:H/2, vx:0, vy:0 };
                         dbHockey.update({ball:ball, scoreG:d.scoreG, scoreM:d.scoreM});
                     });
@@ -147,33 +152,45 @@
                 }
             }
 
-            // Colisiones con Fichas
-            [pads.gael, pads.mar].forEach((p, i) => {
+            [pads.gael, pads.mar].forEach((p) => {
                 let dist = Math.hypot(ball.x - p.x, ball.y - p.y);
                 if(dist < 45) {
                     let angle = Math.atan2(ball.y - p.y, ball.x - p.x);
-                    ball.vx = Math.cos(angle) * 7;
-                    ball.vy = Math.sin(angle) * 7;
+                    let speed = 8;
+                    ball.vx = Math.cos(angle) * speed;
+                    ball.vy = Math.sin(angle) * speed;
+                    // Empujón para que no se pegue
+                    ball.x = p.x + Math.cos(angle) * 46;
+                    ball.y = p.y + Math.sin(angle) * 46;
                 }
             });
-
             dbHockey.child('ball').set(ball);
         }
 
         function draw() {
             ctx.clearRect(0,0,W,H);
-            // Campo
+            
+            // Bordes de Color (Neon)
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = "#ff69b4"; // Rosa arriba
+            ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(W,0); ctx.stroke();
+            ctx.strokeStyle = "#007bff"; // Azul abajo
+            ctx.beginPath(); ctx.moveTo(0,H); ctx.lineTo(W,H); ctx.stroke();
+            
+            // Paredes laterales
+            ctx.lineWidth = 4; ctx.strokeStyle = "#444";
+            ctx.strokeRect(0,0,W,H);
+
+            // Línea Media
             ctx.strokeStyle = "rgba(255,255,255,0.1)";
-            ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
-            ctx.strokeRect(W*0.3, -10, W*0.4, 25); ctx.strokeRect(W*0.3, H-15, W*0.4, 25);
 
             // Dibujar Ficha (Disco)
             ctx.fillStyle = "#fff";
             ctx.beginPath(); ctx.arc(ball.x, ball.y, 15, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = "#999"; ctx.stroke();
+            ctx.strokeStyle = "#999"; ctx.lineWidth = 2; ctx.stroke();
 
-            // Dibujar Paletas (Fichas circulares con borde)
+            // Dibujar Paletas
             drawPusher(pads.gael.x, pads.gael.y, "#007bff");
             drawPusher(pads.mar.x, pads.mar.y, "#ff69b4");
         }
@@ -182,7 +199,7 @@
             ctx.fillStyle = color;
             ctx.beginPath(); ctx.arc(x, y, 30, 0, Math.PI*2); ctx.fill();
             ctx.strokeStyle = "white"; ctx.lineWidth = 3; ctx.stroke();
-            ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI*2); ctx.stroke(); // Agujero central decorativo
+            ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI*2); ctx.stroke();
         }
     </script>
 </body>
