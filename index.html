@@ -12,22 +12,29 @@
         .screen { display: none; height: 100vh; width: 100vw; flex-direction: column; align-items: center; box-sizing: border-box; }
         .active { display: flex; }
         
-        /* Menú y Login */
+        /* UI General */
         .main-ui { background: var(--bg); color: #b91d47; justify-content: center; }
-        .header { background: var(--mar); color: white; padding: 20px; border-radius: 0 0 30px 30px; width: 100%; position: absolute; top: 0; }
+        .header { background: var(--mar); color: white; padding: 20px; border-radius: 0 0 30px 30px; width: 100%; position: absolute; top: 0; text-align: center; }
         .menu-btn { background: var(--mar); color: white; border: none; padding: 15px; margin: 10px; border-radius: 15px; width: 85%; font-size: 1.1rem; font-weight: bold; box-shadow: 0 4px 0 #d93654; }
 
-        /* Gato Pro */
+        /* Gato */
         .gato-grid { display: grid; grid-template-columns: repeat(3, 90px); gap: 12px; margin: 20px 0; }
-        .cell { width: 90px; height: 90px; background: white; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.1); color: #333; transition: 0.2s; }
+        .cell { width: 90px; height: 90px; background: white; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.1); color: #333; }
 
-        /* Hockey Estilo Foto */
-        #hockeyCanvas { background: white; cursor: none; }
+        /* Hockey */
+        #hockeyCanvas { background: white; }
         .side-score { position: absolute; left: 0; top: 50%; transform: translateY(-50%); z-index: 10; display: flex; flex-direction: column; }
-        .s-box { width: 35px; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid white; font-size: 1.2rem; }
+        .s-box { width: 35px; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid white; font-size: 1.2rem; transition: 0.3s; }
+        
+        /* Animación de GOL */
+        #goal-announcement { 
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 5rem; font-weight: bold; color: #ffcd05; text-shadow: 0 0 20px #000; z-index: 50;
+            pointer-events: none; animation: pop 0.8s ease-out;
+        }
+        @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; } }
 
-        /* Modal Victoria */
-        #win-modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 25px; width: 80%; color: #333; z-index: 100; text-align: center; border: 4px solid var(--mar); box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+        #win-modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 25px; width: 80%; color: #333; z-index: 100; text-align: center; border: 4px solid var(--mar); }
     </style>
 </head>
 <body>
@@ -49,14 +56,13 @@
 
     <div id="gato" class="screen main-ui">
         <h2 id="status-gato">Turno: ❌</h2>
-        <div class="gato-grid">
-            <script>for(let i=0; i<9; i++) document.write(`<div class="cell" onclick="makeMove(${i})"></div>`);</script>
-        </div>
+        <div class="gato-grid"><script>for(let i=0; i<9; i++) document.write(`<div class="cell" onclick="makeMove(${i})"></div>`);</script></div>
         <button class="menu-btn" onclick="resetGato()">Reiniciar</button>
         <button class="menu-btn" style="background:#888; box-shadow:0 4px 0 #666;" onclick="showScreen('menu')">Volver</button>
     </div>
 
     <div id="hockey" class="screen">
+        <div id="goal-announcement">¡GOL!</div>
         <div class="side-score">
             <div id="s-mar" class="s-box" style="background:var(--mar); border-radius: 0 8px 0 0;">0</div>
             <div id="s-gael" class="s-box" style="background:var(--gael); border-radius: 0 0 8px 0;">0</div>
@@ -70,7 +76,6 @@
     </div>
 
     <script>
-        // FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyAHYSY7wUcZ0zPGDXSRgpwDLcN6iTDjg6I",
             authDomain: "minijuego-eabcb.firebaseapp.com",
@@ -101,7 +106,7 @@
             if(s === 'hockey') initHockey();
         }
 
-        // --- LÓGICA GATO ---
+        // --- GATO ---
         function makeMove(i) {
             dbG.once('value', s => {
                 let d = s.val() || {b:Array(9).fill(""), t:"❌"};
@@ -118,7 +123,7 @@
             document.getElementById('status-gato').innerText = "Turno: " + d.t;
         });
 
-        // --- LÓGICA HOCKEY ---
+        // --- HOCKEY ---
         function initHockey() {
             canvas.ontouchmove = (e) => {
                 if(!active) return;
@@ -127,15 +132,24 @@
                 if(currentUser==='gael' && ty > H/2) dbH.child('gael').set({x:tx, y:ty});
                 if(currentUser==='mar' && ty < H/2) dbH.child('mar').set({x:tx, y:ty});
             };
+
             if(currentUser==='gael') setInterval(physics, 16);
 
             dbH.on('value', s => {
                 const d = s.val() || {};
                 pads = { gael: d.gael || pads.gael, mar: d.mar || pads.mar };
-                ball = d.ball || ball;
+                
+                // Si hubo un cambio de marcador, mostrar animación de GOL
+                const oldG = parseInt(document.getElementById('s-gael').innerText);
+                const oldM = parseInt(document.getElementById('s-mar').innerText);
                 const sg = d.scoreG||0, sm = d.scoreM||0;
+
+                if(sg > oldG || sm > oldM) { showGoalAnim(); }
+
+                ball = d.ball || {x:W/2, y:H/2, vx:0, vy:0};
                 document.getElementById('s-gael').innerText = sg;
                 document.getElementById('s-mar').innerText = sm;
+
                 if(sg>=7 || sm>=7) {
                     active=false; document.getElementById('win-modal').style.display='block';
                     document.getElementById('win-text').innerText = `¡HA GANADO ${sg>=7?'GAEL':'MAR'}! 🎉`;
@@ -144,20 +158,29 @@
             });
         }
 
+        function showGoalAnim() {
+            const el = document.getElementById('goal-announcement');
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 800);
+        }
+
         function resetMatch() { dbH.update({scoreG:0, scoreM:0, ball:{x:W/2, y:H/2, vx:0, vy:0}}); }
 
         function physics() {
             if(!active) return;
             ball.x += ball.vx; ball.y += ball.vy;
-            ball.vx *= 0.992; ball.vy *= 0.992; // Rozamiento suave
+            ball.vx *= 0.99; ball.vy *= 0.99;
 
-            if(ball.x < 25 || ball.x > W-25) ball.vx *= -1.05; // Rebote con pared más fuerte
+            if(ball.x < 25 || ball.x > W-25) ball.vx *= -1.05;
 
+            // Porterías
             if(ball.y < 30 || ball.y > H-30) {
                 if(ball.x > W*0.25 && ball.x < W*0.75) {
                     dbH.once('value', s => {
                         let d = s.val() || {};
-                        if(ball.y < 30) d.scoreG = (d.scoreG||0)+1; else d.scoreM = (d.scoreM||0)+1;
+                        if(ball.y < 30) d.scoreG = (d.scoreG||0)+1; 
+                        else d.scoreM = (d.scoreM||0)+1;
+                        // Reset disco al centro
                         dbH.update({ball:{x:W/2, y:H/2, vx:0, vy:0}, scoreG:d.scoreG, scoreM:d.scoreM});
                     });
                 } else { ball.vy *= -1.05; }
@@ -174,16 +197,12 @@
 
         function draw() {
             ctx.clearRect(0,0,W,H);
-            // Marcas campo
             ctx.strokeStyle = "#eee"; ctx.lineWidth = 5;
             ctx.beginPath(); ctx.arc(W/2, H/2, 70, 0, Math.PI*2); ctx.stroke();
-            ctx.strokeStyle = "#333"; ctx.lineWidth = 10;
+            ctx.strokeStyle = "#000"; ctx.lineWidth = 10;
             ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
-            // Porterías
             ctx.fillStyle = "#000"; ctx.fillRect(W*0.25, -5, W*0.5, 30); ctx.fillRect(W*0.25, H-25, W*0.5, 30);
-            // Disco
             ctx.fillStyle = "#333"; ctx.beginPath(); ctx.arc(ball.x, ball.y, 20, 0, Math.PI*2); ctx.fill();
-            // Fichas
             drawP(pads.gael.x, pads.gael.y, "var(--gael)");
             drawP(pads.mar.x, pads.mar.y, "var(--mar)");
         }
@@ -196,7 +215,6 @@
             ctx.shadowBlur=0;
         }
 
-        // TIMER
         const aniversario = new Date("2025-12-31T00:00:00").getTime();
         setInterval(() => {
             const diff = new Date().getTime() - aniversario;
