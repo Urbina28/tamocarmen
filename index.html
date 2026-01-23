@@ -3,175 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gael & Mar ❤️ Hub</title>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <title>Gael & Mar - Nuestro Espacio</title>
     <style>
-        :root { --gael: #007bff; --mar: #ff4d6d; --bg: #fff5f5; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; overflow-x: hidden; color: #b91d47; display: flex; flex-direction: column; align-items: center; }
+        :root { --morado: #9b59b6; --morado-claro: #bb8fce; --oscuro: #1a1a1a; --gris: #2c3e50; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--oscuro); color: white; margin: 0; padding-bottom: 50px; text-align: center; overflow-x: hidden; }
         
-        .screen { display: none; height: 100vh; width: 100vw; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; padding: 20px; }
-        .active { display: flex; }
-        
-        .header { background: var(--mar); color: white; padding: 15px; border-radius: 0 0 25px 25px; width: 100%; position: absolute; top: 0; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        
-        .btn { background: var(--mar); color: white; border: none; padding: 15px; margin: 8px; border-radius: 20px; font-size: 1.1rem; font-weight: bold; box-shadow: 0 5px 0 #d93654; cursor: pointer; width: 85%; max-width: 300px; }
-        .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #d93654; }
+        /* Header y Contador */
+        .header { background: linear-gradient(135deg, var(--gris), var(--morado)); padding: 30px 10px; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        #contador { font-size: 1.3rem; font-weight: bold; margin-top: 10px; color: #fff; text-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
 
-        /* Estilo Gato */
-        .gato-grid { display: grid; grid-template-columns: repeat(3, 90px); gap: 12px; margin: 20px 0; }
-        .cell { width: 90px; height: 90px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        /* Secciones */
+        section { background: #252525; margin: 15px; padding: 20px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        h3 { color: var(--morado-claro); margin-top: 0; }
 
-        /* Estilo Memorama Mejorado */
-        .memory-grid { display: grid; grid-template-columns: repeat(4, 75px); gap: 10px; perspective: 1000px; margin-top: 20px; }
-        .card { width: 75px; height: 75px; position: relative; transform-style: preserve-3d; transition: transform 0.5s; cursor: pointer; }
-        .card.flipped { transform: rotateY(180deg); }
-        .card.matched { opacity: 0.3; pointer-events: none; transform: rotateY(180deg) scale(0.9); transition: 0.5s; }
-        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; font-size: 2rem; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background: white; border: 2px solid #eee; }
-        .card-back { transform: rotateY(180deg); background: #fff; border-color: var(--mar); }
-        .card-front { background: linear-gradient(45deg, var(--mar), #ff8fa3); color: white; font-size: 1.5rem; font-weight: bold; }
+        /* Pizarra de Dibujo */
+        #pizarra-container { background: white; border-radius: 15px; height: 250px; touch-action: none; position: relative; margin: 10px 0; border: 3px solid var(--morado); }
+        canvas { width: 100%; height: 100%; border-radius: 12px; }
 
-        .timer-box { background: white; padding: 15px; border-radius: 20px; margin-top: 60px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; width: 80%; }
+        /* Etiquetas Rápidas */
+        .tags-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+        .tag { background: var(--morado); padding: 8px 15px; border-radius: 20px; font-size: 0.9rem; cursor: pointer; border: none; color: white; transition: 0.2s; }
+        .tag:active { transform: scale(0.9); }
+        .btn-add { background: none; border: 2px dashed var(--morado); color: var(--morado); }
+
+        /* Bucket List */
+        .item-meta { display: flex; align-items: center; background: #333; padding: 10px; border-radius: 10px; margin-bottom: 8px; text-align: left; }
+        .item-meta span { flex: 1; margin: 0 10px; }
+        .tacha { text-decoration: line-through; color: #777; }
+
+        /* Galería */
+        .galeria-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 15px; }
+        .foto-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 10px; }
+
+        input, button { padding: 10px; border-radius: 10px; border: none; margin: 5px; }
+        .btn-principal { background: var(--morado); color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="login" class="screen active">
-        <h1 style="font-size: 2.5rem;">🦁 Gael & Mar 🐨</h1>
-        <button class="btn" style="background: var(--gael); box-shadow: 0 5px 0 #0056b3;" onclick="setUser('gael')">Soy Gael</button>
-        <button class="btn" onclick="setUser('mar')">Soy Mar</button>
+    <div class="header">
+        <h1>Gael & Mar ❤️</h1>
+        <div id="contador">Calculando...</div>
     </div>
 
-    <div id="menu" class="screen">
-        <div class="header"><h3>❤️ Nuestro Hub ❤️</h3></div>
-        <div class="timer-box">
-            <small>Llevamos juntos:</small><br>
-            <span id="timer" style="font-weight: bold; font-size: 1.2rem;"></span>
+    <section>
+        <h3>Dibujo en Tiempo Real 🎨</h3>
+        <div id="pizarra-container"><canvas id="pizarra"></canvas></div>
+        <button onclick="clearCanvas()" style="background:#e74c3c; color:white;">Borrar Todo</button>
+    </section>
+
+    <section>
+        <h3>Etiquetas Rápidas 🏷️</h3>
+        <div class="tags-container" id="tagsContainer">
+            <button class="tag btn-add" onclick="addNewTag()">+ Nueva</button>
         </div>
-        <button class="btn" onclick="showScreen('gato')">Jugar al Gato ❌⭕</button>
-        <button class="btn" onclick="showScreen('memo')">Memorama ❤️</button>
-        <button class="btn" style="background:#888; box-shadow: 0 5px 0 #666;" onclick="showScreen('login')">Salir</button>
-    </div>
+    </section>
 
-    <div id="gato" class="screen">
-        <h2 id="status-gato">Turno: ❌</h2>
-        <div class="gato-grid" id="board-gato">
-            <script>for(let i=0; i<9; i++) document.write(`<div class="cell" onclick="playGato(${i})"></div>`);</script>
-        </div>
-        <button class="btn" onclick="resetGato()">Reiniciar</button>
-        <button class="btn" style="background:#888; box-shadow:0 5px 0 #666;" onclick="showScreen('menu')">Volver</button>
-    </div>
+    <section>
+        <h3>Nuestra Bucket List ✅</h3>
+        <input type="text" id="bucketInput" placeholder="Ej: Viajar juntos..." style="width: 60%;">
+        <button class="btn-principal" onclick="addBucketItem()">Añadir</button>
+        <div id="listaMetas"></div>
+    </section>
 
-    <div id="memo" class="screen">
-        <h2 id="status-memo" style="margin-top: 50px;">Memorama</h2>
-        <div class="memory-grid" id="grid-memo"></div>
-        <button class="btn" style="margin-top:20px;" onclick="resetMemo()">Mezclar Cartas</button>
-        <button class="btn" style="background:#888; box-shadow:0 5px 0 #666;" onclick="showScreen('menu')">Volver</button>
-    </div>
+    <section>
+        <h3>Nuestra Galería 📸</h3>
+        <input type="text" id="fotoUrl" placeholder="Pega el link de la foto aquí..." style="width: 60%;">
+        <button class="btn-principal" onclick="addFoto()">Subir</button>
+        <div id="galeria" class="galeria-grid"></div>
+    </section>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onChildAdded, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
         const firebaseConfig = {
-            apiKey: "AIzaSyAHYSY7wUcZ0zPGDXSRgpwDLcN6iTDjg6I",
-            authDomain: "minijuego-eabcb.firebaseapp.com",
-            projectId: "minijuego-eabcb",
-            databaseURL: "https://minijuego-eabcb-default-rtdb.firebaseio.com/",
-            storageBucket: "minijuego-eabcb.firebasestorage.app",
-            messagingSenderId: "90763304589",
-            appId: "1:90763304589:web:91e927504cb88fca6e8cc4"
+            apiKey: "AIzaSyAmChW_AAw3n_gZBZ29rgX8CJonRhooVTE",
+            authDomain: "appmar-3bb00.firebaseapp.com",
+            databaseURL: "https://appmar-3bb00-default-rtdb.firebaseio.com",
+            projectId: "appmar-3bb00",
+            storageBucket: "appmar-3bb00.firebasestorage.app",
+            messagingSenderId: "762733783465",
+            appId: "1:762733783465:web:25a57b8ae450b83ba83cb8"
         };
-        firebase.initializeApp(firebaseConfig);
-        const dbGato = firebase.database().ref('juego_gato_v3');
-        const dbMemo = firebase.database().ref('juego_memo_v3');
 
-        let user = "";
-        const emojis = ["❤️", "🐱", "🐨", "🦁", "🧸", "🌹", "💎", "🍭"];
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        function setUser(name) { user = name; showScreen('menu'); }
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            if(id === 'memo') initMemo();
-        }
+        // --- CONTADOR ---
+        const fechaInicio = new Date('2025-12-31T00:00:00').getTime();
+        setInterval(() => {
+            const dif = new Date().getTime() - fechaInicio;
+            const d = Math.floor(dif / 86400000);
+            const h = Math.floor((dif % 86400000) / 3600000);
+            const m = Math.floor((dif % 3600000) / 60000);
+            const s = Math.floor((dif % 60000) / 1000);
+            document.getElementById('contador').innerText = `${d}d ${h}h ${m}m ${s}s juntos`;
+        }, 1000);
 
-        // --- LÓGICA GATO ---
-        function playGato(i) {
-            const sym = (user === 'gael') ? "❌" : "⭕";
-            dbGato.once('value', s => {
-                let d = s.val() || {b: Array(9).fill(""), t: "❌"};
-                if (d.b[i] === "" && d.t === sym) {
-                    d.b[i] = sym; d.t = (sym === "❌") ? "⭕" : "❌";
-                    dbGato.set(d);
-                }
-            });
-        }
-        function resetGato() { dbGato.set({b: Array(9).fill(""), t: "❌"}); }
-        dbGato.on('value', s => {
-            const d = s.val(); if(!d) return;
-            const cells = document.querySelectorAll('#board-gato .cell');
-            d.b.forEach((v, i) => {
-                cells[i].innerText = v;
-                cells[i].style.color = (v === "❌") ? "var(--gael)" : "var(--mar)";
-            });
-            document.getElementById('status-gato').innerText = "Turno: " + d.t;
+        // --- PIZARRA ---
+        const canvas = document.getElementById('pizarra');
+        const ctx = canvas.getContext('2d');
+        const drawRef = ref(db, 'pizarra');
+        canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+        ctx.strokeStyle = "#9b59b6"; ctx.lineWidth = 3; ctx.lineCap = "round";
+
+        const draw = (x, y, type) => push(drawRef, { x: x/canvas.width, y: y/canvas.height, type });
+        canvas.onmousedown = (e) => { canvas.drawing = true; draw(e.offsetX, e.offsetY, 'start'); };
+        canvas.onmousemove = (e) => { if(canvas.drawing) draw(e.offsetX, e.offsetY, 'move'); };
+        window.onmouseup = () => canvas.drawing = false;
+
+        onChildAdded(drawRef, (snap) => {
+            const p = snap.val();
+            if(p.type === 'clear') ctx.clearRect(0,0,canvas.width,canvas.height);
+            else {
+                ctx[p.type === 'start' ? 'beginPath' : 'lineTo'](p.x*canvas.width, p.y*canvas.height);
+                ctx.stroke();
+            }
+        });
+        window.clearCanvas = () => set(drawRef, { type: 'clear' });
+
+        // --- BUCKET LIST (CREAR, EDITAR, SELECCIONAR) ---
+        const bucketRef = ref(db, 'bucket');
+        window.addBucketItem = () => {
+            const val = document.getElementById('bucketInput').value;
+            if(val) push(bucketRef, { text: val, check: false });
+            document.getElementById('bucketInput').value = '';
+        };
+
+        onChildAdded(bucketRef, (snap) => {
+            const div = document.createElement('div');
+            div.className = 'item-meta';
+            div.innerHTML = `<input type="checkbox" ${snap.val().check ? 'checked' : ''}> 
+                             <span class="${snap.val().check ? 'tacha' : ''}">${snap.val().text}</span>
+                             <button onclick="editItem('${snap.key}', '${snap.val().text}')">✏️</button>`;
+            div.querySelector('input').onchange = (e) => update(ref(db, 'bucket/'+snap.key), { check: e.target.checked });
+            document.getElementById('listaMetas').appendChild(div);
         });
 
-        // --- LÓGICA MEMORAMA ---
-        function initMemo() {
-            dbMemo.on('value', s => {
-                let d = s.val();
-                if(!d || !d.deck) { resetMemo(); return; }
-                
-                const grid = document.getElementById('grid-memo');
-                grid.innerHTML = '';
-                d.deck.forEach((emoji, i) => {
-                    const card = document.createElement('div');
-                    let isFlipped = (d.f && d.f.includes(i));
-                    let isMatched = (d.m && d.m.includes(i));
-                    
-                    card.className = 'card' + (isFlipped || isMatched ? ' flipped' : '') + (isMatched ? ' matched' : '');
-                    card.innerHTML = `<div class="card-face card-front">❤️</div><div class="card-face card-back">${emoji}</div>`;
-                    card.onclick = () => flipMemo(i);
-                    grid.appendChild(card);
-                });
-                
-                if(d.m && d.m.length === 16) document.getElementById('status-memo').innerText = "¡Ganaron! ❤️";
-                else document.getElementById('status-memo').innerText = "Memorama";
-            });
-        }
+        window.editItem = (id, oldText) => {
+            const newText = prompt("Editar meta:", oldText);
+            if(newText) update(ref(db, 'bucket/'+id), { text: newText });
+        };
 
-        function flipMemo(i) {
-            dbMemo.once('value', s => {
-                let d = s.val();
-                if (!d.f) d.f = [];
-                if (!d.m) d.m = [];
-                if (d.m.includes(i) || d.f.includes(i) || d.f.length >= 2) return;
+        // --- ETIQUETAS ---
+        const tagsRef = ref(db, 'tags');
+        window.addNewTag = () => {
+            const t = prompt("Nueva etiqueta:");
+            if(t) push(tagsRef, { text: t });
+        };
+        onChildAdded(tagsRef, (snap) => {
+            const b = document.createElement('button');
+            b.className = 'tag'; b.innerText = snap.val().text;
+            b.onclick = () => alert("Enviado: " + snap.val().text);
+            document.getElementById('tagsContainer').insertBefore(b, document.getElementById('tagsContainer').lastElementChild);
+        });
 
-                d.f.push(i);
-                if (d.f.length === 2) {
-                    if (d.deck[d.f[0]] === d.deck[d.f[1]]) {
-                        d.m.push(d.f[0], d.f[1]);
-                        d.f = [];
-                    } else {
-                        setTimeout(() => { dbMemo.child('f').set([]); }, 1000);
-                    }
-                }
-                dbMemo.set(d);
-            });
-        }
+        // --- GALERÍA ---
+        const fotoRef = ref(db, 'galeria');
+        window.addFoto = () => {
+            const url = document.getElementById('fotoUrl').value;
+            if(url) push(fotoRef, { url });
+            document.getElementById('fotoUrl').value = '';
+        };
+        onChildAdded(fotoRef, (snap) => {
+            const div = document.createElement('div');
+            div.className = 'foto-card';
+            div.innerHTML = `<img src="${snap.val().url}">`;
+            document.getElementById('galeria').appendChild(div);
+        });
 
-        function resetMemo() {
-            const deck = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
-            dbMemo.set({ deck: deck, f: [99], m: [99] }); // Forzar actualización con arrays no vacíos
-            setTimeout(() => dbMemo.update({f: [], m: []}), 100);
-        }
-
-        // TIMER ANIVERSARIO
-        const aniversario = new Date("2025-12-31T00:00:00").getTime();
-        setInterval(() => {
-            const diff = new Date().getTime() - aniversario;
-            const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-            document.getElementById("timer").innerText = `${d}d ${h}h ${m}m ${s}s`;
-        }, 1000);
     </script>
 </body>
 </html>
