@@ -4,89 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gael & Mar</title>
-    <link rel="manifest" href="manifest.json">
     <style>
-        :root { --morado: #a29bfe; --fondo: #0f0c29; --tarjeta: rgba(255, 255, 255, 0.05); }
-        body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
-            color: white; margin: 0; padding: 20px;
-        }
+        :root { --accent: #a29bfe; --bg: #0a0a0a; --card: #161616; --text: #ffffff; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; height: 100vh; overflow: hidden; }
 
-        /* Diseño de App Real */
-        .glass { background: var(--tarjeta); backdrop-filter: blur(10px); border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); padding: 20px; margin-bottom: 20px; }
-        
-        .header h1 { font-size: 1.8rem; margin: 0; background: linear-gradient(to right, #fff, var(--morado)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
-        #contador { font-size: 1rem; opacity: 0.8; margin-top: 5px; letter-spacing: 1px; }
+        /* Contenedores de Pantallas */
+        .view { display: none; height: 100vh; padding: 20px; overflow-y: auto; padding-bottom: 100px; }
+        .view.active { display: block; animation: fadeIn 0.3s ease; }
 
-        /* Pizarra Arreglada para Celular */
-        #pizarra-container { 
-            width: 100%; height: 300px; background: #fff; border-radius: 20px; 
-            position: relative; overflow: hidden; touch-action: none; /* Bloquea el scroll al dibujar */
-        }
-        canvas { width: 100%; height: 100%; cursor: crosshair; }
+        /* Navegación Inferior */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #111; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #222; z-index: 1000; }
+        .nav-item { color: #555; font-size: 0.7rem; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+        .nav-item.active { color: var(--accent); }
 
-        /* Botones y Tags */
-        .tag { 
-            background: rgba(162, 155, 254, 0.2); border: 1px solid var(--morado);
-            padding: 10px 18px; border-radius: 15px; color: white; font-size: 0.9rem;
-            margin: 5px; display: inline-block; transition: 0.3s;
-        }
-        .tag:active { background: var(--morado); transform: scale(0.9); }
+        /* Estilo de Tarjetas */
+        .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid #222; }
+        h2 { font-size: 1.4rem; margin: 0 0 10px 0; }
 
-        .btn-main { 
-            background: var(--morado); color: #24243e; border: none; 
-            padding: 12px 20px; border-radius: 12px; font-weight: bold; width: 100%;
-        }
+        /* Pizarra Cuadrada */
+        .canvas-wrapper { width: 100%; aspect-ratio: 1 / 1; background: white; border-radius: 15px; position: relative; touch-action: none; overflow: hidden; margin-bottom: 15px; }
+        canvas { width: 100%; height: 100%; }
 
-        input { 
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); 
-            color: white; padding: 12px; border-radius: 12px; width: calc(100% - 24px); margin-bottom: 10px;
-        }
+        /* Botones */
+        .btn { background: var(--accent); color: #000; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; width: 100%; margin-top: 10px; cursor: pointer; }
+        .btn-outline { background: transparent; border: 1px solid #ff7675; color: #ff7675; margin-top: 10px; }
 
-        /* Identificación */
-        #overlay { position: fixed; inset: 0; background: #0f0c29; z-index: 100; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        /* Animación */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Login */
+        #login { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
     </style>
 </head>
 <body>
 
-    <div id="overlay">
-        <h2>¿Quién eres hoy? ❤️</h2>
-        <button class="tag" style="padding: 20px" onclick="setUsuario('Gael')">Soy Gael</button>
-        <button class="tag" style="padding: 20px" onclick="setUsuario('Mar')">Soy Mar</button>
+    <div id="login">
+        <h1>Gael & Mar</h1>
+        <button class="btn" style="width: 200px" onclick="setAppUser('Gael')">Soy Gael</button>
+        <button class="btn" style="width: 200px; background: #dcdde1;" onclick="setAppUser('Mar')">Soy Mar</button>
     </div>
 
-    <div class="header" style="text-align: center; margin-bottom: 30px;">
-        <h1 id="saludo">Hola Amor</h1>
-        <div id="contador" class="glass">Cargando nuestro tiempo...</div>
-    </div>
-
-    <div class="glass">
-        <h3>Pizarra Mágica 🎨</h3>
-        <div id="pizarra-container">
-            <canvas id="pizarra"></canvas>
+    <div id="view-home" class="view active">
+        <div class="card" style="text-align: center;">
+            <h1 id="user-greeting">Hola</h1>
+            <div id="timer" style="font-size: 1.2rem; font-weight: bold; color: var(--accent);">0d 0h 0m 0s</div>
+            <p style="opacity: 0.5; font-size: 0.8rem;">Desde el 31 de Dic, 2025</p>
         </div>
-        <button onclick="clearCanvas()" style="margin-top:10px; background:none; border:none; color:#ff7675;">Limpiar Pizarra</button>
-    </div>
-
-    <div class="glass">
-        <h3>Envía un detalle rápido ✨</h3>
-        <div id="tagsContainer">
-            <button class="tag btn-add" onclick="addNewTag()">+ Crear propia</button>
+        <div class="card">
+            <h2>Tags Rápidos ✨</h2>
+            <div id="tags-list" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+            <button class="btn" onclick="createTag()" style="background: #333; color: #fff; margin-top: 15px;">+ Nueva Etiqueta</button>
         </div>
     </div>
 
-    <div class="glass">
-        <h3>Nuestra Bucket List ✈️</h3>
-        <input type="text" id="bucketInput" placeholder="Próxima aventura...">
-        <button class="btn-main" onclick="addBucketItem()">Añadir a la lista</button>
-        <div id="listaMetas" style="margin-top: 15px; text-align: left;"></div>
+    <div id="view-draw" class="view">
+        <div class="card">
+            <h2>Pizarra Mágica 🎨</h2>
+            <div class="canvas-wrapper">
+                <canvas id="pizarra"></canvas>
+            </div>
+            <button class="btn btn-outline" onclick="clearCanvas()">Limpiar para ambos</button>
+        </div>
+    </div>
+
+    <div id="view-list" class="view">
+        <div class="card">
+            <h2>Bucket List ✈️</h2>
+            <input type="text" id="listInput" placeholder="Añadir algo juntos..." style="width:100%; padding:12px; border-radius:10px; border:none; background:#222; color:white;">
+            <button class="btn" onclick="addToList()">Añadir Meta</button>
+            <div id="full-list" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="showView('home')"><span>🏠</span>Inicio</div>
+        <div class="nav-item" onclick="showView('draw')"><span>🎨</span>Pizarra</div>
+        <div class="nav-item" onclick="showView('list')"><span>✅</span>Metas</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, push, onChildAdded, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, push, onChildAdded, set, update, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAmChW_AAw3n_gZBZ29rgX8CJonRhooVTE",
@@ -101,99 +100,93 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- GESTIÓN DE USUARIO ---
-        window.setUsuario = (nombre) => {
-            localStorage.setItem('usuario', nombre);
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('saludo').innerText = "Hola " + nombre + " ❤️";
+        // --- NAVEGACIÓN ---
+        window.showView = (viewName) => {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById('view-' + viewName).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if(viewName === 'draw') resizeCanvas();
         };
-        if(localStorage.getItem('usuario')) setUsuario(localStorage.getItem('usuario'));
+
+        window.setAppUser = (name) => {
+            localStorage.setItem('user', name);
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('user-greeting').innerText = "Hola " + name + " ❤️";
+        };
+        if(localStorage.getItem('user')) setAppUser(localStorage.getItem('user'));
 
         // --- CONTADOR ---
-        const fechaIn = new Date('2025-12-31T00:00:00').getTime();
         setInterval(() => {
-            const dif = new Date().getTime() - fechaIn;
-            const d = Math.floor(dif / 86400000);
-            const h = Math.floor((dif % 86400000) / 3600000);
-            const m = Math.floor((dif % 3600000) / 60000);
-            const s = Math.floor((dif % 60000) / 1000);
-            document.getElementById('contador').innerText = `${d}d ${h}h ${m}m ${s}s de nosotros`;
+            const dif = new Date().getTime() - new Date('2025-12-31T00:00:00').getTime();
+            const d = Math.floor(dif/86400000), h = Math.floor((dif%86400000)/3600000), m = Math.floor((dif%3600000)/60000), s = Math.floor((dif%60000)/1000);
+            document.getElementById('timer').innerText = `${d}d ${h}h ${m}m ${s}s`;
         }, 1000);
 
-        // --- PIZARRA ARREGLADA (TOUCH) ---
+        // --- PIZARRA ---
         const canvas = document.getElementById('pizarra');
         const ctx = canvas.getContext('2d');
-        const drawRef = ref(db, 'pizarra');
-        
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-        ctx.strokeStyle = "#6c5ce7";
-        ctx.lineWidth = 4;
-        ctx.lineCap = "round";
+        const drawRef = ref(db, 'dibujo');
 
-        function getPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return { x: (clientX - rect.left) / canvas.width, y: (clientY - rect.top) / canvas.height };
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.offsetWidth;
+            canvas.height = canvas.parentElement.offsetWidth;
+            ctx.strokeStyle = "#a29bfe"; ctx.lineWidth = 4; ctx.lineCap = "round";
         }
 
-        const startDraw = (e) => {
-            canvas.isDrawing = true;
-            const pos = getPos(e);
-            push(drawRef, { x: pos.x, y: pos.y, type: 'start' });
+        const sendPoint = (e, type) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / canvas.width;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / canvas.height;
+            push(drawRef, { x, y, type });
         };
 
-        const moveDraw = (e) => {
-            if (!canvas.isDrawing) return;
-            e.preventDefault(); // Evita que la pantalla se mueva al dibujar
-            const pos = getPos(e);
-            push(drawRef, { x: pos.x, y: pos.y, type: 'move' });
-        };
-
-        canvas.addEventListener('mousedown', startDraw);
-        canvas.addEventListener('mousemove', moveDraw);
-        canvas.addEventListener('touchstart', startDraw, {passive: false});
-        canvas.addEventListener('touchmove', moveDraw, {passive: false});
+        canvas.addEventListener('mousedown', (e) => { canvas.isDrawing = true; sendPoint(e, 'start'); });
+        canvas.addEventListener('mousemove', (e) => { if(canvas.isDrawing) sendPoint(e, 'move'); });
+        canvas.addEventListener('touchstart', (e) => { canvas.isDrawing = true; sendPoint(e, 'start'); }, {passive: false});
+        canvas.addEventListener('touchmove', (e) => { if(canvas.isDrawing) { e.preventDefault(); sendPoint(e, 'move'); } }, {passive: false});
         window.addEventListener('mouseup', () => canvas.isDrawing = false);
         window.addEventListener('touchend', () => canvas.isDrawing = false);
 
-        onChildAdded(drawRef, (snap) => {
-            const p = snap.val();
-            if(p.type === 'clear') ctx.clearRect(0,0,canvas.width,canvas.height);
-            else {
-                ctx[p.type === 'start' ? 'beginPath' : 'lineTo'](p.x*canvas.width, p.y*canvas.height);
-                ctx.stroke();
-            }
+        onValue(drawRef, (snap) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            snap.forEach(child => {
+                const p = child.val();
+                if(p.type === 'start') { ctx.beginPath(); ctx.moveTo(p.x*canvas.width, p.y*canvas.height); }
+                else { ctx.lineTo(p.x*canvas.width, p.y*canvas.height); ctx.stroke(); }
+            });
         });
-        window.clearCanvas = () => set(drawRef, { type: 'clear' });
+
+        window.clearCanvas = () => remove(drawRef);
 
         // --- BUCKET LIST ---
-        const bRef = ref(db, 'bucket');
-        window.addBucketItem = () => {
-            const t = document.getElementById('bucketInput').value;
-            if(t) { push(bRef, { text: t, check: false }); document.getElementById('bucketInput').value = ''; }
+        window.addToList = () => {
+            const val = document.getElementById('listInput').value;
+            if(val) push(ref(db, 'lista'), { text: val, done: false });
+            document.getElementById('listInput').value = '';
         };
-        onChildAdded(bRef, (snap) => {
-            const div = document.createElement('div');
-            div.className = 'item-meta glass';
-            div.style.padding = "10px";
-            div.innerHTML = `<input type="checkbox" ${snap.val().check ? 'checked' : ''}> <span>${snap.val().text}</span>`;
-            div.querySelector('input').onchange = (e) => update(ref(db, 'bucket/'+snap.key), { check: e.target.checked });
-            document.getElementById('listaMetas').prepend(div);
+
+        onChildAdded(ref(db, 'lista'), (snap) => {
+            const item = document.createElement('div');
+            item.className = 'card';
+            item.style.padding = "10px";
+            item.innerHTML = `<input type="checkbox" ${snap.val().done ? 'checked' : ''}> <span style="${snap.val().done ? 'text-decoration:line-through; opacity:0.5' : ''}">${snap.val().text}</span>`;
+            item.querySelector('input').onchange = (e) => update(ref(db, 'lista/'+snap.key), { done: e.target.checked });
+            document.getElementById('full-list').prepend(item);
         });
 
         // --- TAGS ---
-        const tRef = ref(db, 'tags');
-        window.addNewTag = () => {
-            const t = prompt("Nueva frase rápida:");
-            if(t) push(tRef, { text: t });
+        window.createTag = () => {
+            const t = prompt("Nueva etiqueta:");
+            if(t) push(ref(db, 'tags'), { text: t });
         };
-        onChildAdded(tRef, (snap) => {
+        onChildAdded(ref(db, 'tags'), (snap) => {
             const b = document.createElement('button');
-            b.className = 'tag'; b.innerText = snap.val().text;
-            document.getElementById('tagsContainer').insertBefore(b, document.getElementById('tagsContainer').lastElementChild);
+            b.className = 'btn'; b.style.width = 'auto'; b.innerText = snap.val().text;
+            b.onclick = () => alert("Notificación enviada!");
+            document.getElementById('tags-list').appendChild(b);
         });
+
     </script>
 </body>
 </html>
