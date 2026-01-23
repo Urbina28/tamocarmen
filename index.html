@@ -4,101 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gael & Mar</title>
+    <script src="https://www.youtube.com/iframe_api"></script>
     <style>
-        :root { --accent: #a29bfe; --bg: #000000; --card: #111111; --text: #ffffff; }
+        :root { --accent: #a29bfe; --bg: #000; --card: #111; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; margin: 0; height: 100vh; overflow: hidden; }
 
-        /* Vistas Principal */
         .view { display: none; height: 100vh; padding: 30px 20px; overflow-y: auto; padding-bottom: 120px; }
         .view.active { display: block; animation: fadeIn 0.4s ease; }
 
-        /* Navegación Minimal */
-        .nav-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 85%; background: rgba(20,20,20,0.8); backdrop-filter: blur(15px); display: flex; justify-content: space-around; padding: 15px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
-        .nav-item { color: #444; font-size: 1.2rem; cursor: pointer; transition: 0.3s; }
+        .nav-bar { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(25,25,25,0.7); backdrop-filter: blur(20px); display: flex; justify-content: space-around; padding: 18px; border-radius: 35px; border: 1px solid rgba(255,255,255,0.08); z-index: 1000; }
+        .nav-item { color: #444; font-size: 1.2rem; transition: 0.3s; cursor: pointer; }
         .nav-item.active { color: var(--accent); transform: scale(1.2); }
 
-        /* Tarjetas Estilo Apple */
-        .card { background: var(--card); border-radius: 28px; padding: 25px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
-        h1 { font-weight: 300; letter-spacing: -1px; margin: 0; }
-        #timer { font-size: 1.8rem; font-weight: 200; margin: 15px 0; color: var(--accent); }
+        .card { background: var(--card); border-radius: 30px; padding: 25px; margin-bottom: 20px; }
+        #timer { font-size: 1.8rem; font-weight: 200; color: var(--accent); margin: 15px 0; }
 
-        /* Chat Minimal */
-        #chat-box { height: 50vh; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 12px; }
-        .msg { max-width: 75%; padding: 12px 18px; border-radius: 22px; font-size: 0.95rem; }
-        .msg.yo { align-self: flex-end; background: var(--accent); color: #000; border-bottom-right-radius: 4px; }
-        .msg.otro { align-self: flex-start; background: #222; border-bottom-left-radius: 4px; }
+        /* Estilo Video */
+        .video-container { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 20px; overflow: hidden; margin-top: 15px; }
+        iframe { width: 100%; height: 100%; border: none; }
 
-        /* ALERTA GIGANTE (El "Algo más") */
-        #big-alert { 
-            position: fixed; inset: 0; background: var(--accent); color: #000; 
-            z-index: 5000; display: none; align-items: center; justify-content: center; 
-            flex-direction: column; text-align: center; font-weight: bold; animation: alertPop 0.5s ease;
-        }
-        #big-alert h1 { font-size: 3rem; -webkit-text-fill-color: #000; }
+        /* Toques Rápidos */
+        .tags-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .tag-btn { background: #1a1a1a; color: #fff; border: 1px solid #333; padding: 12px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; }
+        
+        /* Alerta Gigante */
+        #big-alert { position: fixed; inset: 0; background: var(--accent); color: #000; z-index: 5000; display: none; align-items: center; justify-content: center; flex-direction: column; text-align: center; animation: pop 0.4s ease; }
+        
+        #chat-box { height: 50vh; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .msg { max-width: 80%; padding: 10px 15px; border-radius: 18px; font-size: 0.9rem; }
+        .msg.yo { align-self: flex-end; background: var(--accent); color: #000; }
+        .msg.otro { align-self: flex-start; background: #222; }
 
-        /* Pizarra Cuadrada Perfecta */
-        .canvas-container { width: 100%; aspect-ratio: 1/1; background: #fff; border-radius: 24px; overflow: hidden; touch-action: none; }
+        .canvas-box { width: 100%; aspect-ratio: 1/1; background: #fff; border-radius: 25px; overflow: hidden; touch-action: none; }
         canvas { width: 100%; height: 100%; }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes alertPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        #login { position: fixed; inset: 0; background: #000; z-index: 9000; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
+        button.primary { background: var(--accent); border: none; padding: 15px 30px; border-radius: 20px; font-weight: bold; width: 80%; }
 
-        #login { position: fixed; inset: 0; background: #000; z-index: 9000; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 15px; }
-        button { background: var(--accent); border: none; padding: 15px 30px; border-radius: 20px; font-weight: bold; cursor: pointer; width: 80%; }
-        input { background: #1a1a1a; border: none; color: white; padding: 15px; border-radius: 15px; width: 100%; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
 
     <div id="login">
-        <h1 style="margin-bottom: 20px;">Gael & Mar</h1>
-        <button onclick="login('Gael')">Soy Gael</button>
-        <button style="background: #fff;" onclick="login('Mar')">Soy Mar</button>
+        <h1 style="font-weight: 200;">Gael & Mar</h1>
+        <button class="primary" onclick="startApp('Gael')">Soy Gael</button>
+        <button class="primary" style="background: #fff;" onclick="startApp('Mar')">Soy Mar</button>
     </div>
 
     <div id="big-alert">
-        <p id="alert-user" style="text-transform: uppercase; letter-spacing: 2px;">MENSAJE DE AMOR</p>
-        <h1 id="alert-text">TE EXTRAÑO</h1>
-        <span style="font-size: 4rem;">❤️</span>
+        <h1 id="alert-text" style="font-size: 2.5rem;">MENSAJE</h1>
+        <span>❤️</span>
     </div>
 
     <div id="home" class="view active">
         <div style="text-align: center; margin-top: 40px;">
-            <h1 id="welcome-name">Hola</h1>
-            <div id="timer">00d 00h 00m 00s</div>
-            <p style="opacity: 0.4;">Juntos desde el 31.12.25</p>
-        </div>
-
-        <div class="card" style="margin-top: 40px;">
-            <p style="margin-bottom: 15px; opacity: 0.6;">Enviar un toque rápido:</p>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button onclick="sendBigAlert('¡TE EXTRAÑO!')" style="background: #222; color: #fff;">Te extraño</button>
-                <button onclick="sendBigAlert('¡TE AMO!')" style="background: #222; color: #fff;">Te amo</button>
-                <button onclick="sendBigAlert('¿CENAMOS? 🍕')" style="background: #222; color: #fff;">¿Cenamos?</button>
-                <button onclick="sendBigAlert('MÍRAME 😘')" style="background: #222; color: #fff;">Mírame</button>
+            <h1 id="uName" style="font-weight: 200;">Hola</h1>
+            <div id="timer">00d 00h 00m</div>
+            <div class="tags-grid" id="tags-container">
+                <button class="tag-btn" onclick="addT()" style="border: 1px dashed #555;">+ Nuevo Toque</button>
             </div>
+        </div>
+    </div>
+
+    <div id="cine" class="view">
+        <div class="card">
+            <h2 style="font-weight: 300;">Cine Compartido 🍿</h2>
+            <input type="text" id="ytUrl" placeholder="Link de YouTube..." style="width:100%; padding:12px; border-radius:12px; border:none; background:#222; color:#fff;">
+            <button onclick="loadVideo()" class="primary" style="margin-top:10px; padding:10px;">Cargar Video</button>
+            <div class="video-container">
+                <div id="player"></div>
+            </div>
+            <p style="font-size: 0.7rem; opacity: 0.5; margin-top: 10px; text-align: center;">El video se sincroniza para ambos.</p>
         </div>
     </div>
 
     <div id="chat" class="view">
         <div id="chat-box"></div>
-        <div style="padding: 10px; display: flex; gap: 10px;">
-            <input type="text" id="msgInput" placeholder="Escribe aquí...">
-            <button onclick="sendMessage()" style="width: auto;">Enviar</button>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <input type="text" id="mIn" style="flex:1; padding:12px; border-radius:12px; background:#111; color:#fff; border:none;">
+            <button onclick="sendMsg()" style="background:var(--accent); border:none; padding:12px; border-radius:12px;">></button>
         </div>
     </div>
 
     <div id="draw" class="view">
-        <h2 style="text-align: center; font-weight: 300;">Lienzo Compartido</h2>
-        <div class="canvas-container"><canvas id="pizarra"></canvas></div>
-        <button onclick="clearCanvas()" style="background: none; border: 1px solid #333; color: #555; margin-top: 20px;">Limpiar Lienzo</button>
+        <div class="canvas-box"><canvas id="pizarra"></canvas></div>
+        <button onclick="clearP()" style="background:none; border:1px solid #333; color:#555; width:100%; padding:10px; margin-top:15px; border-radius:15px;">Limpiar</button>
     </div>
 
     <div class="nav-bar">
-        <div class="nav-item active" onclick="switchTab('home')">🏠</div>
-        <div class="nav-item" onclick="switchTab('chat')">💬</div>
-        <div class="nav-item" onclick="switchTab('draw')">🎨</div>
+        <div class="nav-item active" onclick="tab('home')">🏠</div>
+        <div class="nav-item" onclick="tab('cine')">🍿</div>
+        <div class="nav-item" onclick="tab('chat')">💬</div>
+        <div class="nav-item" onclick="tab('draw')">🎨</div>
     </div>
 
     <script type="module">
@@ -119,18 +119,48 @@
         const db = getDatabase(app);
         const me = localStorage.getItem('user');
 
-        window.login = (u) => { localStorage.setItem('user', u); location.reload(); };
-        if(me) {
-            document.getElementById('login').style.display = 'none';
-            document.getElementById('welcome-name').innerText = "Hola " + me;
+        window.startApp = (u) => { localStorage.setItem('user', u); location.reload(); };
+        if(me) { document.getElementById('login').style.display = 'none'; document.getElementById('uName').innerText = "Hola " + me; }
+
+        window.tab = (t) => {
+            document.querySelectorAll('.view, .nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(t).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if(t === 'draw') setupCanvas();
+        };
+
+        // --- CINE LOGIC ---
+        let player;
+        window.onYouTubeIframeAPIReady = () => {
+            player = new YT.Player('player', {
+                events: { 'onStateChange': onPlayerStateChange }
+            });
+        };
+
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.PLAYING || event.data == YT.PlayerState.PAUSED) {
+                set(ref(db, 'cine/state'), { status: event.data, time: player.getCurrentTime(), sender: me });
+            }
         }
 
-        window.switchTab = (tab) => {
-            document.querySelectorAll('.view, .nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(tab).classList.add('active');
-            event.currentTarget.classList.add('active');
-            if(tab === 'draw') setupCanvas();
+        window.loadVideo = () => {
+            const url = document.getElementById('ytUrl').value;
+            const id = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
+            if(id) set(ref(db, 'cine/video'), { id: id, sender: me });
         };
+
+        onValue(ref(db, 'cine/video'), (snap) => {
+            const data = snap.val();
+            if(data && player && player.loadVideoById) player.loadVideoById(data.id);
+        });
+
+        onValue(ref(db, 'cine/state'), (snap) => {
+            const data = snap.val();
+            if(data && data.sender !== me && player) {
+                if(data.status == 1) { player.seekTo(data.time); player.playVideo(); }
+                else if(data.status == 2) { player.pauseVideo(); }
+            }
+        });
 
         // --- CONTADOR ---
         setInterval(() => {
@@ -139,61 +169,46 @@
             document.getElementById('timer').innerText = `${d}d ${h}h ${m}m ${s}s`;
         }, 1000);
 
-        // --- ALERTA GRANDE (Punto 3) ---
-        window.sendBigAlert = (txt) => {
-            set(ref(db, 'alert'), { from: me, text: txt, time: Date.now() });
-        };
-
+        // --- TOQUES ---
+        window.addT = () => { const t = prompt("Nuevo toque:"); if(t) push(ref(db, 'toques'), { text: t.toUpperCase() }); };
+        onChildAdded(ref(db, 'toques'), (snap) => {
+            const b = document.createElement('button'); b.className = 'tag-btn'; b.innerText = snap.val().text;
+            b.onclick = () => set(ref(db, 'alert'), { from: me, text: snap.val().text, id: Date.now() });
+            document.getElementById('tags-container').insertBefore(b, document.getElementById('tags-container').lastElementChild);
+        });
         onValue(ref(db, 'alert'), (snap) => {
-            const data = snap.val();
-            if(data && data.from !== me) {
-                const overlay = document.getElementById('big-alert');
-                document.getElementById('alert-user').innerText = data.from + " dice:";
-                document.getElementById('alert-text').innerText = data.text;
-                overlay.style.display = 'flex';
-                setTimeout(() => overlay.style.display = 'none', 3500);
+            const d = snap.val(); if(d && d.from !== me) {
+                document.getElementById('alert-text').innerText = d.text;
+                document.getElementById('big-alert').style.display = 'flex';
+                setTimeout(() => document.getElementById('big-alert').style.display = 'none', 3000);
             }
         });
 
         // --- CHAT ---
-        window.sendMessage = () => {
-            const input = document.getElementById('msgInput');
-            if(input.value) { push(ref(db, 'chat'), { u: me, t: input.value }); input.value = ''; }
-        };
+        window.sendMsg = () => { const i = document.getElementById('mIn'); if(i.value) { push(ref(db, 'chat'), { u: me, t: i.value }); i.value = ''; } };
         onChildAdded(ref(db, 'chat'), (snap) => {
-            const m = snap.val();
-            const div = document.createElement('div');
-            div.className = `msg ${m.u === me ? 'yo' : 'otro'}`;
-            div.innerText = m.t;
-            document.getElementById('chat-box').appendChild(div);
+            const m = snap.val(); const d = document.createElement('div');
+            d.className = `msg ${m.u === me ? 'yo' : 'otro'}`; d.innerText = m.t;
+            document.getElementById('chat-box').appendChild(d);
             document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
         });
 
         // --- PIZARRA ---
-        const canvas = document.getElementById('pizarra');
-        const ctx = canvas.getContext('2d');
-        function setupCanvas() {
-            canvas.width = canvas.parentElement.offsetWidth;
-            canvas.height = canvas.width;
-            ctx.strokeStyle = "#a29bfe"; ctx.lineWidth = 4; ctx.lineCap = "round";
-        }
-        const sendStroke = (e, type) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / canvas.width;
-            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / canvas.height;
+        const cvs = document.getElementById('pizarra'); const ctx = cvs.getContext('2d');
+        function setupCanvas() { cvs.width = cvs.parentElement.offsetWidth; cvs.height = cvs.width; ctx.strokeStyle = "#a29bfe"; ctx.lineWidth = 4; ctx.lineCap = "round"; }
+        const draw = (e, type) => {
+            const r = cvs.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - r.left) / cvs.width;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - r.top) / cvs.height;
             push(ref(db, 'draw'), { x, y, type });
         };
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); sendStroke(e, 'start'); }, {passive: false});
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); sendStroke(e, 'move'); }, {passive: false});
+        cvs.addEventListener('touchstart', (e) => { e.preventDefault(); draw(e, 'start'); }, {passive: false});
+        cvs.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e, 'move'); }, {passive: false});
         onValue(ref(db, 'draw'), (snap) => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            snap.forEach(c => {
-                const p = c.val();
-                if(p.type === 'start') { ctx.beginPath(); ctx.moveTo(p.x*canvas.width, p.y*canvas.height); }
-                else { ctx.lineTo(p.x*canvas.width, p.y*canvas.height); ctx.stroke(); }
-            });
+            ctx.clearRect(0,0,cvs.width,cvs.height);
+            snap.forEach(c => { const p = c.val(); if(p.type === 'start') { ctx.beginPath(); ctx.moveTo(p.x*cvs.width, p.y*cvs.height); } else { ctx.lineTo(p.x*cvs.width, p.y*cvs.height); ctx.stroke(); } });
         });
-        window.clearCanvas = () => remove(ref(db, 'draw'));
+        window.clearP = () => remove(ref(db, 'draw'));
 
     </script>
 </body>
